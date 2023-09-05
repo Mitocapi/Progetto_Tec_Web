@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %} Super Gallery {% endblock %}
+
+{% block header1 %}
+  <h1>Super Gallery</h1>
+  <p>Welcome to the Super Gallery
+    <br>
+    Please, take a seat, young Skywalker </p>
+{% endblock %}
+
+{% block content %}
+
+<h2>Home di Super Gallery</h2>
+<h5>Now 50% Galactus-free</h5>
+<img src="{% static '/fotowallpaper.jpeg' %}" width="800"  height="400px" alt="First wallpaper">
+<p>Guardati pure intorno, fai come se non ci fossi</p>
+
+{% endblock %}

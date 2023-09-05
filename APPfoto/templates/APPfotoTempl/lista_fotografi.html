@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Elenco Fotografi{% endblock %}
+
+{% load static %}
+
+{% block header1 %}
+  <h1>Elenco Fotografi</h1>
+{% endblock %}
+
+{% block content %}
+<h2>{{ group_name }} Members</h2>
+
+<div>
+    <a href="?sort=positive_reviews">Sort by Positive Reviews</a> |
+    <a href="?sort=alphabetical">Sort Alphabetically</a>
+</div>
+
+<br>
+
+{% if members %}
+    <ul>
+        {% for member in members %}
+        <li>
+            <h3>{{ member.username }}</h3>
+            <p>Positive Reviews: {{ member.positive_review_count }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No members in the "fotografi" group.</p>
+{% endif %}
+<br>
+
+{% endblock %}

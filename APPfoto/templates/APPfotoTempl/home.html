@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %} Home di Super Gallery {% endblock %}
+
+{% block header1 %}
+  <h1>Home di Super Gallery</h1>
+  <p>Welcome
+    {% if user.is_authenticated %}
+     {{ user.username }}
+    {% else %}
+    Utente non registrato, <br> Wait a minute, who are you?
+    {% endif %}
+  </p>
+{% endblock %}
+
+{% block content %}
+
+<h2>Cosa si fa di bello?</h2>
+
+<br>
+
+<div class="list-group">
+  <a href="{% url 'APPfoto:cercaFoto' %}" class="list-group-item list-group-item-info">Cerca una foto</a>
+  <a href="{% url 'APPfoto:listafoto' %}" class="list-group-item list-group-item-info">Elenco delle Foto</a>
+  <a href="{% url 'APPfoto:situation' %}" class="list-group-item list-group-item-info">Come siamo messi?</a>
+</div>
+
+<br>
+
+{% if user.is_staff %}
+<br>
+<a href="{% url 'registrafotografo' %}" class="list-group-item list-group-item-danger">Iscrivi un fotografo alla gilda</a>
+<br>
+{% endif %}
+
+
+{% if "Fotografi" in user.groups.all.0.name or user.is_staff %}
+<br>
+<!-- <a href="{ url 'gestione:situationb' %}" class="list-group-item list-group-item-warning">Situazione Biblioteca</a> -->
+<a href="{% url 'APPfoto:creafoto' %}" class="list-group-item list-group-item-warning">Aggiungi una foto</a>
+<!-- <a href="{ url 'gestione:creacopia' %}" class="list-group-item list-group-item-warning">Aggiungi una copia</a> -->
+<br>
+{% endif %}
+
+
+{% endblock %}

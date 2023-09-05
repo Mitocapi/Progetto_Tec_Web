@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %} Elenco Foto{% endblock %}
+
+{% load static %}
+
+{% block header1 %}
+  <h1>Elenco Foto</h1>
+{% endblock %}
+
+
+{% block content %}
+<h2> {{ view.nome }} {{ object_list.count }} Foto </h2>
+<br>
+
+<div class="btn-group" role="group">
+    <a href="?sort_by=price" class="btn btn-secondary">Sort by Price</a>
+    <a href="?sort_by=new" class="btn btn-secondary">Sort by New</a>
+</div>
+
+
+<br>
+{% if object_list %}
+    {% for f in object_list %}
+    <br>
+    <div class="card">
+        <img src="{% static f.actual_photo %}" alt="{{ f.name }}" height="500" width="500">
+            <div class="card-body">
+            <h5 class="card-title">{{ f.nome }}</h5>
+            {% if f.landscape %}
+                <p class="card-text">foto scattata da {{ f.artist_name }} in formato Landscape</p>
+            {% else %}
+               <p class="card-text">foto scattata da {{ f.artist_name }} in formato Portrait</p>
+            {% endif %}
+            Spero ti piaccia
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'APPfoto:acquisto' f.pk %}" class="btn btn-info">
+                Se compra! </a>
+        </div>
+    </div>
+    <br>
+    {% endfor %}
+{% else %}
+    <p>No photos available. Redirecting...</p>
+    <script>
+         setTimeout(function() {
+            window.location.href = "{% url 'APPfoto:search_wrong_colour' %}";
+        }, 3000);  // Redirect after 3 seconds
+    </script>
+{% endif %}
+<br>
+
+{% endblock %}
+

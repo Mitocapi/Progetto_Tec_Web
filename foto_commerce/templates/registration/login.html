@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %} 
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"> 
+
+{% block title %} Login Cliente{% endblock %}
+
+{% block header1 %}
+  <h1>Pagina per il Login</h1>
+  <p> Compilare tutti i campi </p>
+{% endblock %}
+
+{% block content %} 
+
+{% if "notok" in request.GET.auth %}
+<div class="alert alert-danger" role="alert">
+    Si è stati reindirizzati a questa schermata perchè
+    <br>
+    non si dispone dell'autorizzazione per i servizi selezionati
+</div>
+{% endif %}
+
+<form method="post"> {% csrf_token %}
+
+  {{form | crispy}}
+  
+  <input type="submit" class="btn btn-success" value="Esegui login">
+  
+  </form>
+
+{% endblock %}
+
+{% block footer %} {% endblock %}
