@@ -22,7 +22,7 @@
 <div class="list-group">
   <a href="{% url 'APPfoto:cercaFoto' %}" class="list-group-item list-group-item-info">Cerca una foto</a>
   <a href="{% url 'APPfoto:listafoto' %}" class="list-group-item list-group-item-info">Elenco delle Foto</a>
-  <a href="{% url 'APPfoto:situation' %}" class="list-group-item list-group-item-info">Come siamo messi?</a>
+  <a href="{% url 'APPfoto:situation' %}" class="list-group-item list-group-item-info">Cronologia Acquisti</a>
 </div>
 
 <br>
@@ -36,9 +36,7 @@
 
 {% if "Fotografi" in user.groups.all.0.name or user.is_staff %}
 <br>
-<!-- <a href="{ url 'gestione:situationb' %}" class="list-group-item list-group-item-warning">Situazione Biblioteca</a> -->
 <a href="{% url 'APPfoto:creafoto' %}" class="list-group-item list-group-item-warning">Aggiungi una foto</a>
-<!-- <a href="{ url 'gestione:creacopia' %}" class="list-group-item list-group-item-warning">Aggiungi una copia</a> -->
 <br>
 {% endif %}
 

@@ -12,6 +12,7 @@ from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
 from django.db.models import Count, Exists, OuterRef, Q
+from django.core.paginator import Paginator
 
 
 def home_view(request):
@@ -22,7 +23,7 @@ def home_view(request):
 class FotografiListView(ListView):
     template_name = 'APPfotoTempl/lista_fotografi.html'
     context_object_name = 'members'
-
+    paginate_by = 1
     def get_queryset(self):
         fotografi_group = Group.objects.get(name='Fotografi')
         members = User.objects.filter(groups=fotografi_group).annotate(

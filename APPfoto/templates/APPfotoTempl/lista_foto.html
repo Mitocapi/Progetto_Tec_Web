@@ -8,9 +8,8 @@
   <h1>Elenco Foto</h1>
 {% endblock %}
 
-
 {% block content %}
-<h2> {{ view.nome }} {{ object_list.count }} Foto </h2>
+<h2> {{ request.resolver_match.url_name }} {{ object_list.count }} Foto </h2>
 <br>
 
 <div class="btn-group" role="group">
@@ -18,19 +17,20 @@
     <a href="?sort_by=new" class="btn btn-secondary">Sort by New</a>
 </div>
 
-
 <br>
 {% if object_list %}
     {% for f in object_list %}
     <br>
     <div class="card">
-        <img src="{% static f.actual_photo %}" alt="{{ f.name }}" height="500" width="500">
-            <div class="card-body">
-            <h5 class="card-title">{{ f.nome }}</h5>
+        <img src="{{ f.actual_photo.url }}" alt="{{ f.name }}" >
+        <div class="card-body">
+            <h5 class="card-title">{{ f.name }}</h5>
             {% if f.landscape %}
-                <p class="card-text">foto scattata da {{ f.artist_name }} in formato Landscape</p>
+                <p class="card-text">foto scattata da {{ f.artist.username }} in formato Landscape</p>
+                <br> comprala per soli {{ f.price }}
             {% else %}
-               <p class="card-text">foto scattata da {{ f.artist_name }} in formato Portrait</p>
+               <p class="card-text">foto scattata da {{ f.artist.username }} in formato Portrait</p>
+                <br> comprala per soli {{ f.price }}
             {% endif %}
             Spero ti piaccia
         </div>
@@ -52,4 +52,3 @@
 <br>
 
 {% endblock %}
-

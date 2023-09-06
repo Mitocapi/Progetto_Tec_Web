@@ -9,26 +9,31 @@
 {% endblock %}
 
 {% block content %}
-<h2>{{ group_name }} Members</h2>
+<h2>Elenco di tutti i Fotografi</h2>
+    <br>
+    <h3> Sort by: </h3>
 
-<div>
-    <a href="?sort=positive_reviews">Sort by Positive Reviews</a> |
-    <a href="?sort=alphabetical">Sort Alphabetically</a>
+<div class="btn-group" role="group">
+    <a href="?sort=positive_reviews" class="btn btn-secondary">Positive Reviews</a>
+    <a href="?sort=alphabetical" class="btn btn-secondary">Alphabetically</a>
 </div>
-
+<br>
+<br>
+<br>
 <br>
 
 {% if members %}
-    <ul>
-        {% for member in members %}
-        <li>
-            <h3>{{ member.username }}</h3>
-            <p>Positive Reviews: {{ member.positive_review_count }}</p>
-        </li>
-        {% endfor %}
-    </ul>
+    {% for member in members %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h3 class="card-title">{{ member.username }}</h3>
+            <p class="card-text">Positive Reviews: {{ member.positive_review_count }}</p>
+        </div>
+    </div>
+    {% endfor %}
+
 {% else %}
-    <p>No members in the "fotografi" group.</p>
+    <p>Non ci sono fotografi registrati... Strano, moto strano</p>
 {% endif %}
 <br>
 
