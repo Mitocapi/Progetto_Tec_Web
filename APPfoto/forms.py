@@ -90,3 +90,21 @@ class AcquistoForm(forms.ModelForm):
         self.helper.form_id = "acquisto_crispy_form"
         self.helper.form_method = "POST"
         self.helper.add_input(Submit("submit", "Completa l'acquisto"))
+
+
+
+
+class RecensioneForm(forms.ModelForm):
+    class Meta:
+        model = Recensione
+        fields = ["foto","fotografo","voto_positivo","testo","utente"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["foto"].disabled = True
+        self.fields["fotografo"].disabled = True
+        self.fields["utente"].disabled = True
+        self.helper = FormHelper()
+        self.helper.form_id = "recensione_crispy_form"
+        self.helper.form_method = "POST"
+        self.helper.add_input(Submit("submit", "Conferma la recensione"))

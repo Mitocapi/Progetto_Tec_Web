@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %} Recensioni di {{ user.username }} {% endblock %}
+
+{% block content %}
+  <h2>Recensioni di {{ user.username }}</h2>
+  {% for recensione in recensioni_utente %}
+    <!-- Display recensione details as needed -->
+    <p>{{ recensione.foto.name }}</p>
+    <p>{{ recensione.fotografo }}</p>
+    <p>{{ recensione.testo_della_recensione }}</p>
+    <p>{{ recensione.voto_positivo }}</p>
+    <!-- Add other recensione details -->
+  {% endfor %}
+{% endblock %}

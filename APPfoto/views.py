@@ -166,3 +166,58 @@ def CreaAcquisto(request, foto_id):
     return render(request, 'APPfotoTempl/acquisto.html', context)
 
 
+@login_required
+def CreaRecensione(request, acquisto_id):
+    acquisto = Acquisto.objects.get(pk=acquisto_id)
+    foto = acquisto.foto
+
+    existing_recensione = Recensione.objects.filter(utente=request.user, foto=foto).first()
+
+
+    if request.method == "POST":
+        form = RecensioneForm(request.POST, initial={'foto': foto, 'utente': request.user, 'fotografo': foto.artist})
+
+        if form.is_valid():
+            recensione = form.save(commit=False)
+            recensione.foto = foto
+            recensione.utente = request.user
+            recensione.fotografo = foto.artist
+            if existing_recensione:
+                return redirect('APPfoto:situation')
+            recensione.save()
+            return redirect('APPfoto:situation')
+        else:
+            messages.error(request, "Invalid form data. Please correct the errors.")
+    else:
+        initial_data = {'foto': foto, 'utente': request.user, 'fotografo': foto.artist}
+        form = RecensioneForm(initial=initial_data)
+
+    # Make the acquirente field readonly and disabled
+    form.fields['utente'].widget.attrs['readonly'] = True
+    form.fields['utente'].widget.attrs['disabled'] = True
+    form.fields['foto'].widget.attrs['readonly'] = True
+    form.fields['foto'].widget.attrs['disabled'] = True
+    form.fields['fotografo'].widget.attrs['readonly'] = True
+    form.fields['fotografo'].widget.attrs['disabled'] = True
+
+    context = {
+        'foto': foto,
+        'form': form,
+        'user_has_recensione': existing_recensione is not None,
+    }
+
+    return render(request, 'APPfotoTempl/recensione.html', context)
+
+
+@login_required
+def RecensioniUtente(request):
+    user = request.user
+    recensioni_utente = Recensione.objects.filter(utente=user)
+
+    context = {
+        'user': user,
+        'recensioni_utente': recensioni_utente,
+
+    }
+
+    return render(request, 'APPfotoTempl/recensioni_utente.html', context)

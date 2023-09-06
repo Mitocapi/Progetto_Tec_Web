@@ -16,6 +16,9 @@
 {% endblock %}
 
 {% block content %}
+     <br> <a href="{% url 'APPfoto:RecensioniUtente' %}" class="btn btn-info">Visualizza Recensioni</a>
+    <br>
+    <br>
   <h2> Vediamo se ci azzecco, la sfera di cristallo dice che hai comprato: </h2>
 
   <br>
@@ -33,9 +36,9 @@
         <p class="card-text">Dimensioni: {{ acquisto.get_dimensioni_display }}</p>
 
         <!-- Add a link to manage the acquisto, replace 'your_url_name' with your actual URL name -->
-        <!--
-        <a href="{ url 'your_url_name' acquisto.pk %}" class="btn btn-info"> Gestisci Acquisto </a>
-        -->
+
+        <a href="{% url 'APPfoto:CreaRecensione' acquisto.pk %}" class="btn btn-info"> Scrivi una Recensione </a>
+
 
       </div>
     </div>

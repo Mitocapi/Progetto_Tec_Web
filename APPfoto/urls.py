@@ -12,6 +12,8 @@ urlpatterns = [
     path("search_wrong_colour/", views.SearchWrongColourView.as_view(), name="search_wrong_colour"),
     path("situation/", views.my_situation, name="situation"),
     path("acquisto/<int:foto_id>/", views.CreaAcquisto, name="acquisto"),
-    path("fotografi_lista", views.FotografiListView.as_view(), name="listafotografi")
+    path("fotografi_lista", views.FotografiListView.as_view(), name="listafotografi"),
+    path('CreaRecensione/<int:acquisto_id>/', views.CreaRecensione, name='CreaRecensione'),
+    path('recensioni_utente/', views.RecensioniUtente, name='RecensioniUtente')
 
 ]
