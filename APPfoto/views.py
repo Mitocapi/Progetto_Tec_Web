@@ -71,6 +71,19 @@ class FotoListView(ListView):
     model = Foto
     template_name = "APPfotoTempl/lista_foto.html"
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort = self.request.GET.get('sort', None)
+
+        # Sort the queryset based on the sort_by parameter
+        if sort == 'price':
+            queryset = queryset.order_by('price')
+        elif sort == 'new':
+            queryset = queryset.order_by('-date_added')
+
+        return queryset
+
+
 def search(request):
     if request.method == "POST":
         form = SearchForm(request.POST)
@@ -93,9 +106,10 @@ class FotoListaRicercataView(FotoListView):
         sstring = self.kwargs['sstring']
         where = self.kwargs['where']
         queryset = super().get_queryset()
+        sort = self.request.GET.get('sort')
 
-        # Sorting options
-        sort_by = self.request.GET.get('sort_by', None)
+        print(f'sort_by: {sort}')
+        print("SE STAMPAAAAAAAA!!!!")
 
         if where == "name":
             queryset = queryset.filter(name__icontains=sstring)
@@ -109,9 +123,9 @@ class FotoListaRicercataView(FotoListView):
             queryset = queryset.filter(artist__username__icontains=sstring)
 
         # Sort the queryset based on the sort_by parameter
-        if sort_by == 'price':
+        if sort == 'price':
             queryset = queryset.order_by('price')
-        elif sort_by == 'new':
+        elif sort == 'new':
             queryset = queryset.order_by('-date_added')
 
         return queryset
