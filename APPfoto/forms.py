@@ -1,11 +1,9 @@
-from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
 from .models import *
 from django.contrib.auth.models import User,Group
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class SearchForm(forms.Form):
     CHOICE_LIST = [
@@ -93,18 +91,24 @@ class AcquistoForm(forms.ModelForm):
 
 
 
-
 class RecensioneForm(forms.ModelForm):
     class Meta:
         model = Recensione
-        fields = ["foto","fotografo","voto_positivo","testo","utente"]
+        fields = ['acquisto', 'utente', 'fotografo', 'voto', 'testo']
+        widgets = {
+            'acquisto': forms.TextInput(attrs={'readonly': 'readonly', 'disabled': 'disabled'}),
+            'utente': forms.TextInput(attrs={'readonly': 'readonly', 'disabled': 'disabled'}),
+            'fotografo': forms.TextInput(attrs={'readonly': 'readonly', 'disabled': 'disabled'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["foto"].disabled = True
         self.fields["fotografo"].disabled = True
         self.fields["utente"].disabled = True
         self.helper = FormHelper()
         self.helper.form_id = "recensione_crispy_form"
         self.helper.form_method = "POST"
         self.helper.add_input(Submit("submit", "Conferma la recensione"))
+
+    voto = forms.IntegerField(min_value=0, max_value=10)
+

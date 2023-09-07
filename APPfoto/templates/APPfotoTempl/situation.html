@@ -24,7 +24,7 @@
   <br>
 
   <!-- Iterate over Acquisto objects for the current user -->
-  {% for acquisto in user.acquisti.all %}
+  {% for acquisto in user.acquisti.all reversed %}
     <div class="card">
       <div class="card-header">
          Acquisto con id {{ acquisto.pk }}
@@ -34,6 +34,7 @@
         <p class="card-text">Una foto di {{ acquisto.foto.artist.username }} </p>
         <p class="card-text">Materiale: {{ acquisto.get_materiale_display }}</p>
         <p class="card-text">Dimensioni: {{ acquisto.get_dimensioni_display }}</p>
+        <p class="card-text">Spesa totale: {{ acquisto.prezzo }}</p>
 
         <!-- Add a link to manage the acquisto, replace 'your_url_name' with your actual URL name -->
 

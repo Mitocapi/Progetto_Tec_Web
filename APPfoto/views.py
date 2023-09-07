@@ -1,18 +1,16 @@
-from django.contrib.auth.models import User, Group
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from .forms import *
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView
-from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
+from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
-from django.db.models import Count, Exists, OuterRef, Q
-from django.core.paginator import Paginator
+from django.db.models import Count, Q
 
 
 def home_view(request):
@@ -75,7 +73,6 @@ class FotoListView(ListView):
         queryset = super().get_queryset()
         sort = self.request.GET.get('sort', None)
 
-
         # Sort the queryset based on the sort_by parameter
         if sort == 'price':
             queryset = queryset.order_by('price')
@@ -84,20 +81,6 @@ class FotoListView(ListView):
 
         return queryset
 
-
-def Asearch(request):
-    if request.method == "POST":
-        form = SearchForm(request.POST)
-        if form.is_valid():
-            sstring = form.cleaned_data.get("search_string")
-            where = form.cleaned_data.get("search_where")
-            print("PRINTO WHERE DAL SEARCH: " + where)
-            return redirect("APPfoto:ricerca_risultati", sstring, where)
-
-    else:
-        form = SearchForm()
-
-    return render(request, "APPfotoTempl/search.html", context= {"form": form})
 
 def search(request):
     if request.method == 'POST':
@@ -168,8 +151,6 @@ def my_situation(request):
      user = get_object_or_404(User, pk=request.user.pk)
      return render(request, "APPfotoTempl/situation.html")
 
-
-
 @login_required
 def CreaAcquisto(request, foto_id):
     foto = Foto.objects.get(pk=foto_id)
@@ -181,8 +162,22 @@ def CreaAcquisto(request, foto_id):
             acquisto = form.save(commit=False)
             acquisto.foto = foto
             acquisto.acquirente = request.user
+
+            # Convert selected materiale and dimensioni to float values
+            materiale_value = float(form.cleaned_data['materiale'])
+            dimensioni_value = float(form.cleaned_data['dimensioni'])
+
+            # Convert foto.price to float before performing addition
+            foto_price = float(foto.price)
+
+            # Calculate the prezzo
+            prezzo = Decimal(foto_price) + Decimal(materiale_value) + Decimal(dimensioni_value)
+            acquisto.prezzo = prezzo
+
             acquisto.save()
-            return redirect('APPfoto:situation')
+            print("SE PRINTA ER PREZZZOOO")
+            print(acquisto.prezzo)
+            return render(request, 'APPfotoTempl/recap_acquisto.html', {'acquisto': acquisto})
         else:
             messages.error(request, "Invalid form data. Please correct the errors.")
     else:
@@ -193,6 +188,10 @@ def CreaAcquisto(request, foto_id):
     form.fields['acquirente'].widget.attrs['readonly'] = True
     form.fields['acquirente'].widget.attrs['disabled'] = True
 
+    # Customize the labels for materiale and dimensioni fields
+    form.fields['materiale'].label = "Materiale"
+    form.fields['dimensioni'].label = "Dimensioni"
+
     context = {
         'foto': foto,
         'form': form,
@@ -200,38 +199,34 @@ def CreaAcquisto(request, foto_id):
 
     return render(request, 'APPfotoTempl/acquisto.html', context)
 
-
 @login_required
 def CreaRecensione(request, acquisto_id):
     acquisto = Acquisto.objects.get(pk=acquisto_id)
     foto = acquisto.foto
 
-    existing_recensione = Recensione.objects.filter(utente=request.user, foto=foto).first()
-
+    existing_recensione, created = Recensione.objects.get_or_create(
+        acquisto=acquisto,
+        utente=request.user,
+        fotografo=foto.artist,
+    )
 
     if request.method == "POST":
-        form = RecensioneForm(request.POST, initial={'foto': foto, 'utente': request.user, 'fotografo': foto.artist})
+        form = RecensioneForm(request.POST, instance=existing_recensione)
 
         if form.is_valid():
             recensione = form.save(commit=False)
-            recensione.foto = foto
-            recensione.utente = request.user
-            recensione.fotografo = foto.artist
-            if existing_recensione:
-                return redirect('APPfoto:situation')
+            recensione.foto = foto  # Set the foto field explicitly
             recensione.save()
             return redirect('APPfoto:situation')
         else:
             messages.error(request, "Invalid form data. Please correct the errors.")
     else:
-        initial_data = {'foto': foto, 'utente': request.user, 'fotografo': foto.artist}
-        form = RecensioneForm(initial=initial_data)
+        initial_data = {'acquisto': acquisto, 'utente': request.user, 'fotografo': foto.artist}
+        form = RecensioneForm(instance=existing_recensione, initial=initial_data)
 
     # Make the acquirente field readonly and disabled
     form.fields['utente'].widget.attrs['readonly'] = True
     form.fields['utente'].widget.attrs['disabled'] = True
-    form.fields['foto'].widget.attrs['readonly'] = True
-    form.fields['foto'].widget.attrs['disabled'] = True
     form.fields['fotografo'].widget.attrs['readonly'] = True
     form.fields['fotografo'].widget.attrs['disabled'] = True
 

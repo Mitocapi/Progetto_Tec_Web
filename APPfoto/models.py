@@ -32,13 +32,40 @@ class Foto(models.Model):
             return f"Nome foto: {self.name}, scattata da: {self.artist}, colore principale: {self.main_colour}, ed è una foto portrait."
 
 
+
+
+class Acquisto(models.Model):
+
+    MATERIALE_DI_STAMPA = [
+        ("0.00", "Carta Standard (+0.00)"),
+        ("1.00", "Tela (+1.00)"),
+        ("2.00", "Carta Fotografica (+2.00)"),
+        ("3.50", "Puzzle (+3.50)"),
+        ("3.00", "Lamiera Semplice (+3.00)"),
+        ("4.00", "Lamiera Premium (+4.00)")
+    ]
+
+    DIMENSIONI = [
+        ("0.00", "10 x 15   (+0.00)"),
+        ("2.00", "12 x 18   (+2.00)"),
+        ("3.00", "13 x 19   (+3.00)")
+    ]
+
+    foto = models.ForeignKey(Foto, on_delete=models.CASCADE, related_name="venduti")
+    acquirente = models.ForeignKey(User, on_delete=models.CASCADE, related_name="acquisti")
+    materiale = models.CharField(max_length=100, choices=MATERIALE_DI_STAMPA)
+    dimensioni = models.CharField(max_length=100, choices=DIMENSIONI)
+    prezzo = models.DecimalField(verbose_name="prezzo", max_digits=6, decimal_places=2, blank=True, null=True)
+
+
 class Recensione(models.Model):
     foto = models.ForeignKey(Foto, on_delete=models.CASCADE, related_name="recensioni")
     utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name="recensioni_scritte")
     testo = models.CharField(max_length=250, default="Questo utente non ha lasciato una recensione scritta, "
                                                      "solo un voto.")
-    voto_positivo = models.BooleanField()
+    voto = models.PositiveIntegerField()
     fotografo = models.ForeignKey(User, on_delete=models.CASCADE, related_name="recensioni", null=True, blank=True)
+    acquisto=models.ForeignKey(Acquisto, on_delete=models.CASCADE, related_name="recensioni", null=True, blank=True)
 
     def scritta_da(self):
         return self.utente.username
@@ -59,25 +86,3 @@ class Recensione(models.Model):
 
     class Meta:
         verbose_name_plural = "Recensioni"
-
-
-class Acquisto(models.Model):
-    MATERIALE_DI_STAMPA = [
-        ("Carta Fotografica", "Carta Fotografica"),
-        ("Tela", "Tela"),
-        ("Carta Standard", "Carta Standard"),
-        ("Lamiera Semplice", "Lamiera Semplice"),
-        ("Lamiera Premium", "Lamiera Premium"),
-        ("Puzzle", "Puzzle")
-        ]
-
-    DIMENSIONI = [
-        ("10 x 15", "10 x 15"),
-        ("12 x 18", "12 x 18"),
-        ("13 x 19", "13 x 19")
-    ]
-
-    foto = models.ForeignKey(Foto, on_delete=models.CASCADE, related_name="venduti")
-    acquirente = models.ForeignKey(User,on_delete=models.CASCADE, related_name="acquisti")
-    materiale = models.CharField(max_length=100, choices=MATERIALE_DI_STAMPA)
-    dimensioni = models.CharField(max_length=100, choices=DIMENSIONI)
