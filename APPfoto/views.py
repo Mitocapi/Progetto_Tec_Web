@@ -23,7 +23,7 @@ def home_view(request):
 class FotografiListView(ListView):
     template_name = 'APPfotoTempl/lista_fotografi.html'
     context_object_name = 'members'
-    paginate_by = 1
+
     def get_queryset(self):
         fotografi_group = Group.objects.get(name='Fotografi')
         members = User.objects.filter(groups=fotografi_group).annotate(
@@ -75,21 +75,23 @@ class FotoListView(ListView):
         queryset = super().get_queryset()
         sort = self.request.GET.get('sort', None)
 
+
         # Sort the queryset based on the sort_by parameter
         if sort == 'price':
             queryset = queryset.order_by('price')
         elif sort == 'new':
-            queryset = queryset.order_by('-date_added')
+            queryset = queryset.order_by('creation_date')
 
         return queryset
 
 
-def search(request):
+def Asearch(request):
     if request.method == "POST":
         form = SearchForm(request.POST)
         if form.is_valid():
             sstring = form.cleaned_data.get("search_string")
             where = form.cleaned_data.get("search_where")
+            print("PRINTO WHERE DAL SEARCH: " + where)
             return redirect("APPfoto:ricerca_risultati", sstring, where)
 
     else:
@@ -97,39 +99,57 @@ def search(request):
 
     return render(request, "APPfotoTempl/search.html", context= {"form": form})
 
+def search(request):
+    if request.method == 'POST':
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            search_where = form.cleaned_data['search_where']
+            print("PRIMO WHERE = " + search_where)
+            sstring = form.cleaned_data['search_string']
+
+            if not sstring.strip():
+                # Handle the case when searching by artist and sstring is empty
+                sstring = 'No name specified'
+
+            # Redirect to the results page with the selected search criteria
+            print(search_where)
+            print(sstring)
+            return redirect("APPfoto:ricerca_risultati", sstring=sstring, where=search_where)
+
+    else:
+        form = SearchForm()
+    return render(request, 'APPfotoTempl/search.html', {'form': form})
+
 
 class FotoListaRicercataView(FotoListView):
     titolo = "risultati ricerca"
-    paginate_by = 10
 
     def get_queryset(self):
-        sstring = self.kwargs['sstring']
-        where = self.kwargs['where']
         queryset = super().get_queryset()
+        where = self.request.GET.get('where')
+        print(where)
+
+        # Sort the queryset based on the sort_by parameter
         sort = self.request.GET.get('sort')
+        if sort == 'price':
+            queryset = queryset.order_by('price')
+        elif sort == 'new':
+            queryset = queryset.order_by('-creation_date')
 
-        print(f'sort_by: {sort}')
-        print("SE STAMPAAAAAAAA!!!!")
-
+        # Apply additional filtering based on the search_where parameter
         if where == "name":
+            sstring = self.request.GET.get('search_string')
             queryset = queryset.filter(name__icontains=sstring)
         elif where == "landscape":
             queryset = queryset.filter(landscape=True)
         elif where == "main_colour":
-            COLOUR_CHOICES_to_filter = ["Black","Dark Blue","Green", "Gray", "Light Blue", "Orange", "Pink",
-                                        "Purple", "Red", "White", "Yellow"]
+            COLOUR_CHOICES_to_filter = ["Black", "Dark Blue", "Green", "Grey", "Light Blue", "Orange", "Pink", "Purple", "Red", "White", "Yellow"]
             queryset = queryset.filter(main_colour__in=COLOUR_CHOICES_to_filter)
-        else:
-            queryset = queryset.filter(artist__username__icontains=sstring)
-
-        # Sort the queryset based on the sort_by parameter
-        if sort == 'price':
-            queryset = queryset.order_by('price')
-        elif sort == 'new':
-            queryset = queryset.order_by('-date_added')
+        elif where == "artist":
+            fotografi_group = Group.objects.get(name='Fotografi')
+            queryset = queryset.filter(artist__in=User.objects.filter(groups__in=[fotografi_group]))
 
         return queryset
-
 
 # views.py
 class CreateFotoView(LoginRequiredMixin, CreateView):

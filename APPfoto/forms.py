@@ -42,11 +42,11 @@ class SearchForm(forms.Form):
     helper.form_method = "POST"
     helper.add_input(Submit('submit', 'Cerca'))
 
-    search_string = forms.CharField(label="Cerca qualcosa", max_length=100, min_length=1, required=True)
-    search_where = forms.ChoiceField(label="Ricerca per: ", required=True, choices=CHOICE_LIST)
+    search_where = forms.ChoiceField(label="Criterio di ricerca: ", required=True, choices=CHOICE_LIST)
+    search_string = forms.CharField(label="Nome foto", max_length=100, min_length=1, required=False)
     main_colour = forms.ChoiceField(label="Colore principale", required=False, choices=COLOUR_CHOICES)
     artist = forms.ChoiceField(label="Fotografo", required=False, choices=artist_choices)
-    landscape = forms.BooleanField(label="Foto landscape", required=False)
+    landscape = forms.BooleanField(label="Formato landscape", required=False)
 
 
 class FotoCrispyForm(forms.ModelForm):
