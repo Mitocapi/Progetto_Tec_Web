@@ -94,21 +94,28 @@ class AcquistoForm(forms.ModelForm):
 class RecensioneForm(forms.ModelForm):
     class Meta:
         model = Recensione
-        fields = ['acquisto', 'utente', 'fotografo', 'voto', 'testo']
-        widgets = {
-            'acquisto': forms.TextInput(attrs={'readonly': 'readonly', 'disabled': 'disabled'}),
-            'utente': forms.TextInput(attrs={'readonly': 'readonly', 'disabled': 'disabled'}),
-            'fotografo': forms.TextInput(attrs={'readonly': 'readonly', 'disabled': 'disabled'}),
-        }
+        fields = ['acquisto', 'utente', 'fotografo', 'voto', 'testo', 'foto']
 
-    def __init__(self, *args, **kwargs):
+    voto = forms.IntegerField(min_value=0, max_value=10)
+
+    def __init__(self, acquisto, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["fotografo"].disabled = True
-        self.fields["utente"].disabled = True
+        self.acquisto = acquisto
+
+        # Set initial values for fields based on the acquisto_instance
+        if acquisto:
+            self.fields['acquisto'].initial = acquisto.pk
+            self.fields['utente'].initial = acquisto.acquirente.pk
+            self.fields['fotografo'].initial = acquisto.foto.artist.pk
+            self.fields['foto'].initial = acquisto.foto.pk
+
+            # Make fields readonly
+            for field_name in ['acquisto', 'utente', 'fotografo']:
+                self.fields[field_name].widget.attrs['readonly'] = True
+                self.fields[field_name].widget.attrs['disabled'] = True
+
+        # Crispy Form Helper
         self.helper = FormHelper()
         self.helper.form_id = "recensione_crispy_form"
         self.helper.form_method = "POST"
         self.helper.add_input(Submit("submit", "Conferma la recensione"))
-
-    voto = forms.IntegerField(min_value=0, max_value=10)
-

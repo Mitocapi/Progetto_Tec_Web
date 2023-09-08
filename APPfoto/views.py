@@ -97,6 +97,7 @@ def search(request):
             # Redirect to the results page with the selected search criteria
             print(search_where)
             print(sstring)
+            print("SIAMO IN SEARCH!!!!")
             return redirect("APPfoto:ricerca_risultati", sstring=sstring, where=search_where)
 
     else:
@@ -109,7 +110,7 @@ class FotoListaRicercataView(FotoListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        where = self.request.GET.get('where')
+        where = self.kwargs['where']
         print(where)
 
         # Sort the queryset based on the sort_by parameter
@@ -121,7 +122,7 @@ class FotoListaRicercataView(FotoListView):
 
         # Apply additional filtering based on the search_where parameter
         if where == "name":
-            sstring = self.request.GET.get('search_string')
+            sstring = self.kwargs['sstring']
             queryset = queryset.filter(name__icontains=sstring)
         elif where == "landscape":
             queryset = queryset.filter(landscape=True)
@@ -199,39 +200,51 @@ def CreaAcquisto(request, foto_id):
 
     return render(request, 'APPfotoTempl/acquisto.html', context)
 
+
 @login_required
 def CreaRecensione(request, acquisto_id):
-    acquisto = Acquisto.objects.get(pk=acquisto_id)
-    foto = acquisto.foto
+    acquisto = get_object_or_404(Acquisto, pk=acquisto_id)
+
+    # Ensure acquisto has a valid foto associated with it
+    if not acquisto.foto:
+        messages.error(request, "This Acquisto does not have a valid foto associated with it.")
+        return redirect('APPfoto:some_redirect_view')  # Replace with the appropriate redirect view
+
+    # Ensure acquisto.foto has a valid artist associated with it
+    if not acquisto.foto.artist:
+        messages.error(request, "The foto associated with this Acquisto does not have a valid artist.")
+        return redirect('APPfoto:some_redirect_view')  # Replace with the appropriate redirect view
 
     existing_recensione, created = Recensione.objects.get_or_create(
         acquisto=acquisto,
         utente=request.user,
-        fotografo=foto.artist,
+        fotografo=acquisto.foto.artist,
     )
 
     if request.method == "POST":
         form = RecensioneForm(request.POST, instance=existing_recensione)
-
         if form.is_valid():
             recensione = form.save(commit=False)
-            recensione.foto = foto  # Set the foto field explicitly
+            recensione.foto = acquisto.foto
             recensione.save()
             return redirect('APPfoto:situation')
         else:
             messages.error(request, "Invalid form data. Please correct the errors.")
     else:
-        initial_data = {'acquisto': acquisto, 'utente': request.user, 'fotografo': foto.artist}
+        initial_data = {
+            'acquisto': acquisto,
+            'utente': request.user,
+            'fotografo': acquisto.foto_id.artist,
+        }
         form = RecensioneForm(instance=existing_recensione, initial=initial_data)
 
-    # Make the acquirente field readonly and disabled
-    form.fields['utente'].widget.attrs['readonly'] = True
-    form.fields['utente'].widget.attrs['disabled'] = True
-    form.fields['fotografo'].widget.attrs['readonly'] = True
-    form.fields['fotografo'].widget.attrs['disabled'] = True
+    # Make the utente and fotografo fields readonly and disabled
+    for field_name in ['utente', 'fotografo']:
+        form.fields[field_name].widget.attrs['readonly'] = True
+        form.fields[field_name].widget.attrs['disabled'] = True
 
     context = {
-        'foto': foto,
+        'foto': acquisto.foto_id,
         'form': form,
         'user_has_recensione': existing_recensione is not None,
     }
