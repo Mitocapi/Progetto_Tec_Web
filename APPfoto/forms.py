@@ -110,10 +110,10 @@ class RecensioneForm(forms.ModelForm):
             # Make fields readonly
             for field_name in ['acquisto', 'utente', 'fotografo']:
                 self.fields[field_name].widget.attrs['readonly'] = True
-                self.fields[field_name].widget.attrs['disabled'] = True
 
         # Crispy Form Helper
         self.helper = FormHelper()
         self.helper.form_id = "recensione_crispy_form"
         self.helper.form_method = "POST"
         self.helper.add_input(Submit("submit", "Conferma la recensione"))
+

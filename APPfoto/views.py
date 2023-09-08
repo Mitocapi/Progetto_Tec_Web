@@ -10,8 +10,7 @@ from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
-from django.db.models import Count, Q
-from django.utils.http import urlencode
+from django.db.models import Avg, F, ExpressionWrapper, fields
 
 
 def home_view(request):
@@ -26,13 +25,15 @@ class FotografiListView(ListView):
     def get_queryset(self):
         fotografi_group = Group.objects.get(name='Fotografi')
         members = User.objects.filter(groups=fotografi_group).annotate(
-            positive_review_count=Count('recensioni', filter=Q(recensioni__voto_positivo=True))
+            average_review=ExpressionWrapper(
+                Avg(F('recensioni__voto')),
+                output_field=fields.FloatField()
+            )
         )
-
         # Check the 'sort' query parameter and apply sorting
         sort_by = self.request.GET.get('sort')
         if sort_by == 'positive_reviews':
-            members = members.order_by('-positive_review_count')
+            members = members.order_by('average_review')
         elif sort_by == 'alphabetical':
             members = members.order_by('username')
 
@@ -117,22 +118,21 @@ class FotoListaRicercataView(FotoListView):
         where = self.kwargs['where']
         sstring = self.kwargs['sstring']
 
-        print("PRINTO IN RICERCA RISULTATI")
-        print(sstring)
-        print(where)
 
-        # Sort the queryset based on the sort_by parameter
         sort = self.request.GET.get('sort')
         if sort == 'price':
             queryset = queryset.order_by('price')
         elif sort == 'new':
             queryset = queryset.order_by('-creation_date')
 
-        # Apply additional filtering based on the search_where parameter
+
         if where == "name":
             queryset = queryset.filter(name__icontains=sstring)
         elif where == "landscape":
-            queryset = queryset.filter(landscape=True)
+            if sstring=="True":
+                queryset = queryset.filter(landscape=True)
+            else:
+                queryset = queryset.filter(landscape=False)
         elif where == "main_colour":
             sstring = self.kwargs['sstring']
             queryset = queryset.filter(main_colour__icontains=sstring)
@@ -171,20 +171,15 @@ def CreaAcquisto(request, foto_id):
             acquisto.foto = foto
             acquisto.acquirente = request.user
 
-            # Convert selected materiale and dimensioni to float values
             materiale_value = float(form.cleaned_data['materiale'])
             dimensioni_value = float(form.cleaned_data['dimensioni'])
 
-            # Convert foto.price to float before performing addition
             foto_price = float(foto.price)
 
-            # Calculate the prezzo
             prezzo = Decimal(foto_price) + Decimal(materiale_value) + Decimal(dimensioni_value)
             acquisto.prezzo = prezzo
 
             acquisto.save()
-            print("SE PRINTA ER PREZZZOOO")
-            print(acquisto.prezzo)
             return render(request, 'APPfotoTempl/recap_acquisto.html', {'acquisto': acquisto})
         else:
             messages.error(request, "Invalid form data. Please correct the errors.")
@@ -192,11 +187,10 @@ def CreaAcquisto(request, foto_id):
         initial_data = {'foto': foto, 'acquirente': request.user}
         form = AcquistoForm(initial=initial_data)
 
-    # Make the acquirente field readonly and disabled
+
     form.fields['acquirente'].widget.attrs['readonly'] = True
     form.fields['acquirente'].widget.attrs['disabled'] = True
 
-    # Customize the labels for materiale and dimensioni fields
     form.fields['materiale'].label = "Materiale"
     form.fields['dimensioni'].label = "Dimensioni"
 
@@ -211,44 +205,35 @@ def CreaAcquisto(request, foto_id):
 @login_required
 def CreaRecensione(request, acquisto_id):
     acquisto = get_object_or_404(Acquisto, pk=acquisto_id)
+    existing_recensione = Recensione.objects.filter(acquisto=acquisto, utente=request.user).first()
 
-    # Ensure acquisto has a valid foto associated with it
-    if not acquisto.foto:
+    if not acquisto.foto or not acquisto.foto.artist:
         messages.error(request, "This Acquisto does not have a valid foto associated with it.")
-        return redirect('APPfoto:some_redirect_view')  # Replace with the appropriate redirect view
+        return redirect('APPfoto:some_redirect_view')
 
-    # Ensure acquisto.foto has a valid artist associated with it
-    if not acquisto.foto.artist:
-        messages.error(request, "The foto associated with this Acquisto does not have a valid artist.")
-        return redirect('APPfoto:some_redirect_view')  # Replace with the appropriate redirect view
+    if existing_recensione:
+        return redirect('APPfoto:situation')
 
-    existing_recensione, created = Recensione.objects.get_or_create(
-        acquisto=acquisto,
-        utente=request.user,
-        fotografo=acquisto.foto.artist,
-    )
-
-    if request.method == "POST":
-        form = RecensioneForm(request.POST, instance=existing_recensione)
+    if request.method == 'POST':
+        form = RecensioneForm(acquisto, request.POST)
         if form.is_valid():
             recensione = form.save(commit=False)
-            recensione.foto = acquisto.foto
+
+            #assegno l'oggetto foto alla foto
+            foto = get_object_or_404(Foto, pk=acquisto.foto_id)
+
+
+            recensione.acquisto = acquisto
+            recensione.utente = request.user
+            recensione.foto = foto
+            recensione.fotografo = foto.artist
             recensione.save()
             return redirect('APPfoto:situation')
         else:
             messages.error(request, "Invalid form data. Please correct the errors.")
     else:
-        initial_data = {
-            'acquisto': acquisto,
-            'utente': request.user,
-            'fotografo': acquisto.foto_id.artist,
-        }
-        form = RecensioneForm(instance=existing_recensione, initial=initial_data)
+       form = RecensioneForm(acquisto=acquisto)
 
-    # Make the utente and fotografo fields readonly and disabled
-    for field_name in ['utente', 'fotografo']:
-        form.fields[field_name].widget.attrs['readonly'] = True
-        form.fields[field_name].widget.attrs['disabled'] = True
 
     context = {
         'foto': acquisto.foto_id,
@@ -257,7 +242,6 @@ def CreaRecensione(request, acquisto_id):
     }
 
     return render(request, 'APPfotoTempl/recensione.html', context)
-
 
 @login_required
 def RecensioniUtente(request):

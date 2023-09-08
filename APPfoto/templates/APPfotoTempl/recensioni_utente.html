@@ -23,16 +23,15 @@
     <br>
   <h2>Recensioni di {{ user.username }}</h2>
   {% for recensione in recensioni_utente %}
-    <!-- Display recensione details as needed -->
-    <p>{{ recensione.foto.name }}</p>
-    <p>{{ recensione.fotografo }}</p>
-    <p>{{ recensione.testo_della_recensione }}</p>
-    {% if recensione.voto_positivo %}
-        <p>Voto positivo! La foto è piaciuta </p>
-    {% else %}
-        <p>Voto negativo, la foto non è piaciuta</p>
-    {% endif %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <!-- INTERNPO DELLA CARD -->
+        <h5 class="card-title">{{ recensione.foto.name }} di : {{ recensione.fotografo }}</h5>
+        <p class="card-text">{{ recensione.testo_della_recensione }}</p>
+        <p class="card-text"> Voto dato all'acquisto: {{ recensione.voto }}</p>
 
-    <!-- Add other recensione details -->
+        <!-- AGGIUNGI ROBA QUI EVENTUALMENTE -->
+      </div>
+    </div>
   {% endfor %}
 {% endblock %}

@@ -27,9 +27,9 @@ class Foto(models.Model):
 
     def __str__(self):
         if self.landscape:
-            return f"Nome foto: {self.name}, scattata da: {self.artist}, colore principale: {self.main_colour}, ed è una foto landscape."
+            return f"Nome foto: {self.name}, in formato landscape"
         else:
-            return f"Nome foto: {self.name}, scattata da: {self.artist}, colore principale: {self.main_colour}, ed è una foto portrait."
+            return f"Nome foto: {self.name}, in formato portrait."
 
 
 
@@ -74,10 +74,7 @@ class Recensione(models.Model):
         return self.testo
 
     def valutata(self):
-        if self.voto_positivo:
-            return "Valutata positivamente"
-        else:
-            return "Valutata negativamente"
+       return "Valutata " + str(self.voto) + " su 10"
 
     def save(self, *args, **kwargs):
         if self.foto:
