@@ -28,13 +28,11 @@ class SearchForm(forms.Form):
         ("Yellow", "Yellow"),
     ]
 
-    # Get users in the "Fotografi" and "Admin" groups
     fotografi_group = Group.objects.get(name='Fotografi')
     users_in_groups = User.objects.filter(groups__in=[fotografi_group])
 
     # Add a blank choice at the beginning of the list
-    artist_choices = [("", "Select Fotografo")] + [(user.username, user.username) for user in users_in_groups]
-
+    artist_choices = [("", "Select Fotografo")] + [(user.id, user.username) for user in users_in_groups]
     helper = FormHelper()
     helper.form_id = 'search_crispy_form'
     helper.form_method = "POST"

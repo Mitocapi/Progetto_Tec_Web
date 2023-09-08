@@ -11,6 +11,7 @@ from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
 from django.db.models import Count, Q
+from django.utils.http import urlencode
 
 
 def home_view(request):
@@ -88,13 +89,16 @@ def search(request):
         if form.is_valid():
             search_where = form.cleaned_data['search_where']
             print("PRIMO WHERE = " + search_where)
-            sstring = form.cleaned_data['search_string']
 
-            if not sstring.strip():
-                # Handle the case when searching by artist and sstring is empty
-                sstring = 'No name specified'
+            if search_where == "name":
+                sstring = form.cleaned_data['search_string']
+            elif search_where == "landscape":
+                sstring = form.cleaned_data['landscape']
+            elif search_where == "main_colour":
+                sstring = form.cleaned_data['main_colour']
+            elif search_where == "artist":
+                sstring = form.cleaned_data['artist']
 
-            # Redirect to the results page with the selected search criteria
             print(search_where)
             print(sstring)
             print("SIAMO IN SEARCH!!!!")
@@ -111,6 +115,10 @@ class FotoListaRicercataView(FotoListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         where = self.kwargs['where']
+        sstring = self.kwargs['sstring']
+
+        print("PRINTO IN RICERCA RISULTATI")
+        print(sstring)
         print(where)
 
         # Sort the queryset based on the sort_by parameter
@@ -122,16 +130,15 @@ class FotoListaRicercataView(FotoListView):
 
         # Apply additional filtering based on the search_where parameter
         if where == "name":
-            sstring = self.kwargs['sstring']
             queryset = queryset.filter(name__icontains=sstring)
         elif where == "landscape":
             queryset = queryset.filter(landscape=True)
         elif where == "main_colour":
-            COLOUR_CHOICES_to_filter = ["Black", "Dark Blue", "Green", "Grey", "Light Blue", "Orange", "Pink", "Purple", "Red", "White", "Yellow"]
-            queryset = queryset.filter(main_colour__in=COLOUR_CHOICES_to_filter)
+            sstring = self.kwargs['sstring']
+            queryset = queryset.filter(main_colour__icontains=sstring)
+
         elif where == "artist":
-            fotografi_group = Group.objects.get(name='Fotografi')
-            queryset = queryset.filter(artist__in=User.objects.filter(groups__in=[fotografi_group]))
+            queryset = queryset.filter(artist=sstring)
 
         return queryset
 
