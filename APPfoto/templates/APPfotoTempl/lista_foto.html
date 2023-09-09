@@ -41,13 +41,28 @@
     </div>
     <br>
     {% endfor %}
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if object_list.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ object_list.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current-page">{{ object_list.number }}</span>
+
+            {% if object_list.has_next %}
+                <a href="?page={{ object_list.next_page_number }}">next</a>
+                <a href="?page={{ object_list.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
 {% else %}
-    <p>No photos available. Redirecting...</p>
-    <script>
-         setTimeout(function() {
-            window.location.href = "{% url 'APPfoto:search_wrong_colour' %}";
-        }, 3000);  // Redirect after 3 seconds
-    </script>
+    <p>No photos available.</p>
+    <!-- Redirect after 3 seconds -->
+    <meta http-equiv="refresh" content="3;url={% url 'APPfoto:cercaFoto' %}">
 {% endif %}
 <br>
 

@@ -3,7 +3,7 @@ from .forms import *
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
-from decimal import Decimal
+from decimal import Decimal, ROUND_UP
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -33,9 +33,9 @@ class FotografiListView(ListView):
         # Check the 'sort' query parameter and apply sorting
         sort_by = self.request.GET.get('sort')
         if sort_by == 'positive_reviews':
-            members = members.order_by('average_review')
+            members = members.order_by('-average_review')
         elif sort_by == 'alphabetical':
-            members = members.order_by('username')
+            members = members.order_by('-username')
 
         return members
 
@@ -89,7 +89,6 @@ def search(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             search_where = form.cleaned_data['search_where']
-            print("PRIMO WHERE = " + search_where)
 
             if search_where == "name":
                 sstring = form.cleaned_data['search_string']
@@ -100,9 +99,10 @@ def search(request):
             elif search_where == "artist":
                 sstring = form.cleaned_data['artist']
 
-            print(search_where)
-            print(sstring)
-            print("SIAMO IN SEARCH!!!!")
+
+            if not sstring:
+                sstring = "SEARCH SOMETHING, ANYTHING"
+
             return redirect("APPfoto:ricerca_risultati", sstring=sstring, where=search_where)
 
     else:
@@ -142,6 +142,7 @@ class FotoListaRicercataView(FotoListView):
 
         return queryset
 
+
 # views.py
 class CreateFotoView(LoginRequiredMixin, CreateView):
     model = Foto
@@ -158,6 +159,7 @@ class CreateFotoView(LoginRequiredMixin, CreateView):
 def my_situation(request):
      user = get_object_or_404(User, pk=request.user.pk)
      return render(request, "APPfotoTempl/situation.html")
+
 
 @login_required
 def CreaAcquisto(request, foto_id):
@@ -177,10 +179,12 @@ def CreaAcquisto(request, foto_id):
             foto_price = float(foto.price)
 
             prezzo = Decimal(foto_price) + Decimal(materiale_value) + Decimal(dimensioni_value)
+            prezzo = prezzo.quantize(Decimal('0.00'), rounding=ROUND_UP)
+
             acquisto.prezzo = prezzo
 
             acquisto.save()
-            return render(request, 'APPfotoTempl/recap_acquisto.html', {'acquisto': acquisto})
+            return redirect('APPfoto:situation')
         else:
             messages.error(request, "Invalid form data. Please correct the errors.")
     else:
@@ -206,23 +210,16 @@ def CreaAcquisto(request, foto_id):
 def CreaRecensione(request, acquisto_id):
     acquisto = get_object_or_404(Acquisto, pk=acquisto_id)
     existing_recensione = Recensione.objects.filter(acquisto=acquisto, utente=request.user).first()
+    foto = get_object_or_404(Foto, pk=acquisto.foto_id)
 
-    if not acquisto.foto or not acquisto.foto.artist:
-        messages.error(request, "This Acquisto does not have a valid foto associated with it.")
-        return redirect('APPfoto:some_redirect_view')
+    print(acquisto)
 
-    if existing_recensione:
-        return redirect('APPfoto:situation')
 
     if request.method == 'POST':
-        form = RecensioneForm(acquisto, request.POST)
+        form = RecensioneForm(request.POST, initial={'foto': foto, 'acquisto': acquisto, 'utente': request.user,
+                                                     'fotografo' : foto.artist})
         if form.is_valid():
             recensione = form.save(commit=False)
-
-            #assegno l'oggetto foto alla foto
-            foto = get_object_or_404(Foto, pk=acquisto.foto_id)
-
-
             recensione.acquisto = acquisto
             recensione.utente = request.user
             recensione.foto = foto
@@ -230,12 +227,19 @@ def CreaRecensione(request, acquisto_id):
             recensione.save()
             return redirect('APPfoto:situation')
         else:
-            messages.error(request, "Invalid form data. Please correct the errors.")
+            messages.error(request, "Form non valido, sistemare per favore")
     else:
-       form = RecensioneForm(acquisto=acquisto)
+        initial_data = {'foto': foto, 'acquisto': acquisto, 'utente': request.user,
+                   'fotografo': foto.artist}
+        form = RecensioneForm(initial=initial_data)
 
+    form.fields['utente'].widget.attrs['readonly'] = True
+    form.fields['utente'].widget.attrs['disabled'] = True
+    form.fields['foto'].widget.attrs['readonly'] = True
+    form.fields['foto'].widget.attrs['disabled'] = True
 
     context = {
+        'acquisto': acquisto_id,
         'foto': acquisto.foto_id,
         'form': form,
         'user_has_recensione': existing_recensione is not None,
