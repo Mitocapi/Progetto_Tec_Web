@@ -27,30 +27,30 @@
 
 <br>
 <br>
-
 <!-- Carousel section for photos with the same artist -->
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <div id="artist-photos-carousel" class="carousel slide" data-ride="carousel">
+      <div id="artist-photos-carousel" class="carousel slide" data-ride="carousel" data-interval="3000">
         <ol class="carousel-indicators">
           {% for foto in artist_photos %}
           <li data-target="#artist-photos-carousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
           {% endfor %}
         </ol>
-      <br>
+        <br>
         <div class="carousel-inner">
           {% for foto in artist_photos %}
           <div class="carousel-item {% if forloop.first %}active{% endif %}">
-            <h2>{{ foto.name }}</h2>
+            <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+              <h2>{{ foto.name }}</h2>
               <br>
-            <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
-
+              <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
+            </a>
             <br>
             <br>
-             <p>Foto dello stesso artista</p>
-          <br>
-          <br>
+            <p>Foto dello stesso artista</p>
+            <br>
+            <br>
           </div>
           {% endfor %}
         </div>

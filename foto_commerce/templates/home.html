@@ -8,14 +8,14 @@
   <h1>Super Gallery</h1>
   <p>Welcome to the Super Gallery
     <br>
-    Siediti e gustati lo spettacolo </p>
+    Siediti e gustati lo spettacolo</p>
 {% endblock %}
 
 {% block content %}
 <h2>Home di Super Gallery</h2>
 <h5>Ecco le ultime novità: </h5>
 
-<div id="recent-photos-carousel" class="carousel slide" data-ride="carousel">
+<div id="recent-photos-carousel" class="carousel slide" data-ride="carousel" data-interval="3000">
   <!-- INDICATORI -->
   <ol class="carousel-indicators">
     {% for foto in recent_photos %}
@@ -24,21 +24,21 @@
   </ol>
 
   <!-- FOTO CHE SCORRONO -->
-
-        <div class="carousel-inner">
-          {% for foto in recent_photos %}
-              <br>
-          <div class="carousel-item {% if forloop.first %}active{% endif %}">
-            <h2>{{ foto.name }}</h2>
-              <br>
-            <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
-
-          <br>
-          <br>
-          <br>
-          </div>
-          {% endfor %}
-        </div>
+  <div class="carousel-inner">
+    {% for foto in recent_photos %}
+    <br>
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+      <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+        <h2>{{ foto.name }}</h2>
+        <br>
+        <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
+      </a>
+      <br>
+      <br>
+      <br>
+    </div>
+    {% endfor %}
+  </div>
 
   <!-- QUI CI SONO I CONTROLLI DELLA GIOSTRA -->
   <a class="carousel-control-prev" href="#recent-photos-carousel" role="button" data-slide="prev">

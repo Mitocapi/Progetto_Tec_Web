@@ -10,12 +10,52 @@ from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
-from django.db.models import Avg, F, ExpressionWrapper, fields, Count
+from django.db.models import Avg, Q, F, ExpressionWrapper, fields, Count, Case, When, Value, IntegerField
 
 
 def home_view(request):
     return render(request, template_name="APPfotoTempl/home.html")
 
+
+def forYouGenerator(request, queryset):
+    user = request.user if request.user.is_authenticated else None
+
+    if user is not None:
+        queryset = queryset.annotate(
+            num_acquisti=Count('venduti', filter=Case(
+                When(venduti__acquirente=user, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )),
+            num_recensioni=Count('venduti__recensioni', filter=Case(
+                When(venduti__acquirente=user, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ))
+        )
+
+        queryset = queryset.annotate(
+            colour_compatibility=Case(
+                When(num_acquisti=0, then=Count('venduti', distinct=True)),
+                default=Count('venduti', filter=Q(venduti__acquirente=user, venduti__foto__main_colour=F('main_colour')))
+                            * Avg(Case(When(venduti__recensioni__utente=user, then=F('venduti__recensioni__voto')), default=Value(0), output_field=IntegerField())),
+                output_field=IntegerField(),
+            ),
+            photographer_compatibility=Case(
+                When(num_acquisti=0, then=Count('venduti', distinct=True)),
+                default=Count('venduti', filter=Q(venduti__acquirente=user, venduti__foto__artist=F('artist')))
+                            * Avg(Case(When(venduti__recensioni__utente=user, then=F('venduti__recensioni__voto')), default=Value(0), output_field=IntegerField())),
+                output_field=IntegerField(),
+            )
+        )
+
+        queryset = queryset.order_by('-colour_compatibility', '-photographer_compatibility')
+    else:
+        queryset = queryset.annotate(
+            num_venduti=Count('venduti')
+        ).order_by('-num_venduti')
+
+    return queryset
 
 
 class FotografiListView(ListView):
@@ -29,9 +69,12 @@ class FotografiListView(ListView):
                 Avg(F('recensioni__voto')),
                 output_field=fields.FloatField()
             )
-        ).annotate(
-            foto_count=Count('foto')
         )
+
+        for user in members:
+            user.foto_count = Foto.objects.filter(artist=user).count()
+            user.venduti_count = Acquisto.objects.filter(foto__artist=user).count()
+
 
         # Check the 'sort' query parameter and apply sorting
         sort_by = self.request.GET.get('sort')
@@ -39,8 +82,11 @@ class FotografiListView(ListView):
             members = members.order_by('-average_review')
         elif sort_by == 'alphabetical':
             members = members.order_by('username')
+        elif sort_by == 'best_seller':
+            members = members.order_by('-venduti_count')
 
         return members
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -83,6 +129,9 @@ class FotoListView(ListView):
             queryset = queryset.order_by('price')
         elif sort == 'new':
             queryset = queryset.order_by('-creation_date')
+
+        elif sort == 'for_you':
+            queryset = forYouGenerator(self.request, queryset)
 
         return queryset
 

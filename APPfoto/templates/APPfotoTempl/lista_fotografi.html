@@ -16,6 +16,7 @@
 <div class="btn-group" role="group">
     <a href="?sort=positive_reviews" class="btn btn-secondary">Recensioni Migliori</a>
     <a href="?sort=alphabetical" class="btn btn-secondary">Alfabetico</a>
+    <a href="?sort=best_seller" class="btn btn-secondary">Best Seller</a>
 </div>
 <br>
 <br>
@@ -26,9 +27,12 @@
     {% for member in members %}
     <div class="card mb-3">
         <div class="card-body">
-            <h3 class="card-title">{{ member.username }}</h3>
+            <a href="{% url 'APPfoto:ricerca_risultati' member.id 'artist' %}">
+                    {{ member.username }}
+                </a>
                 <p class="card-text"> Ha creato : {{ member.foto_count }} fotografie</p>
                 <p class="card-text"> Valutazione degli Utenti: {{ member.average_review }}</p>
+                <p class="card-text"> Foto vendute: {{ member.venduti_count }} </p>
         </div>
     </div>
     {% endfor %}
