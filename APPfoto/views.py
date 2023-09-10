@@ -10,7 +10,7 @@ from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
-from django.db.models import Avg, F, ExpressionWrapper, fields
+from django.db.models import Avg, F, ExpressionWrapper, fields, Count
 
 
 def home_view(request):
@@ -29,13 +29,16 @@ class FotografiListView(ListView):
                 Avg(F('recensioni__voto')),
                 output_field=fields.FloatField()
             )
+        ).annotate(
+            foto_count=Count('foto')
         )
+
         # Check the 'sort' query parameter and apply sorting
         sort_by = self.request.GET.get('sort')
         if sort_by == 'positive_reviews':
             members = members.order_by('-average_review')
         elif sort_by == 'alphabetical':
-            members = members.order_by('-username')
+            members = members.order_by('username')
 
         return members
 
@@ -79,7 +82,7 @@ class FotoListView(ListView):
         if sort == 'price':
             queryset = queryset.order_by('price')
         elif sort == 'new':
-            queryset = queryset.order_by('creation_date')
+            queryset = queryset.order_by('-creation_date')
 
         return queryset
 

@@ -8,14 +8,42 @@
   <h1>Super Gallery</h1>
   <p>Welcome to the Super Gallery
     <br>
-    Please, take a seat, young Skywalker </p>
+    Siediti e gustati lo spettacolo </p>
 {% endblock %}
 
 {% block content %}
-
 <h2>Home di Super Gallery</h2>
-<h5>Now 100% Galactus-free</h5>
-<img src="{% static '/fotowallpaper.jpeg' %}" width="800"  height="400px" alt="First wallpaper">
-<p>Guardati pure intorno, fai come se non ci fossi</p>
+<h5>Ecco le ultime novità </h5>
 
+<div id="recent-photos-carousel" class="carousel slide" data-ride="carousel">
+  <!-- INDICATORI -->
+  <ol class="carousel-indicators">
+    {% for foto in recent_photos %}
+    <li data-target="#recent-photos-carousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+    {% endfor %}
+  </ol>
+
+  <!-- FOTO CHE SCORRONO -->
+  <div class="carousel-inner">
+    {% for foto in recent_photos %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+      <img src="media/{{ foto.actual_photo }}" alt="{{ foto.name }}">
+      <div class="carousel-caption">
+      <!-- Apply CSS to the text to add a border around it -->
+      <p style="color: white; -webkit-text-stroke: 1px black; text-stroke: 0px black; font-size: 26px;">{{ foto.name }}</p>
+    </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- QUI CI SONO I CONTROLLI DELLA GIOSTRA -->
+  <a class="carousel-control-prev" href="#recent-photos-carousel" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#recent-photos-carousel" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
 {% endblock %}
