@@ -27,7 +27,7 @@
   {% for acquisto in user.acquisti.all reversed %}
     <div class="card">
       <div class="card-header">
-         Acquisto con id {{ acquisto.pk }}
+         <img src="{{ acquisto.foto.actual_photo.url }}" alt="{{ acquisto.foto.name }}" >
       </div>
       <div class="card-body">
         <h5 class="card-title">{{ acquisto.foto.name }}</h5>

@@ -23,7 +23,9 @@
     {% for f in object_list %}
     <br>
     <div class="card">
+        <div class="card-header">
         <img src="{{ f.actual_photo.url }}" alt="{{ f.name }}" >
+        </div>
         <div class="card-body">
             <h5 class="card-title">{{ f.name }}</h5>
             {% if f.landscape %}
