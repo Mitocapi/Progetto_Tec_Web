@@ -13,7 +13,7 @@
 
 {% block content %}
 <h2>Home di Super Gallery</h2>
-<h5>Ecco le ultime novità </h5>
+<h5>Ecco le ultime novità: </h5>
 
 <div id="recent-photos-carousel" class="carousel slide" data-ride="carousel">
   <!-- INDICATORI -->
@@ -24,17 +24,21 @@
   </ol>
 
   <!-- FOTO CHE SCORRONO -->
-  <div class="carousel-inner">
-    {% for foto in recent_photos %}
-    <div class="carousel-item {% if forloop.first %}active{% endif %}">
-      <img src="media/{{ foto.actual_photo }}" alt="{{ foto.name }}">
-      <div class="carousel-caption">
-      <!-- Apply CSS to the text to add a border around it -->
-      <p style="color: white; -webkit-text-stroke: 1px black; text-stroke: 0px black; font-size: 26px;">{{ foto.name }}</p>
-    </div>
-    </div>
-    {% endfor %}
-  </div>
+
+        <div class="carousel-inner">
+          {% for foto in recent_photos %}
+              <br>
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <h2>{{ foto.name }}</h2>
+              <br>
+            <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
+
+          <br>
+          <br>
+          <br>
+          </div>
+          {% endfor %}
+        </div>
 
   <!-- QUI CI SONO I CONTROLLI DELLA GIOSTRA -->
   <a class="carousel-control-prev" href="#recent-photos-carousel" role="button" data-slide="prev">

@@ -167,6 +167,10 @@ def my_situation(request):
 @login_required
 def CreaAcquisto(request, foto_id):
     foto = Foto.objects.get(pk=foto_id)
+    artist = foto.artist
+
+    # LISTONE DELLE FOTO DI STO TIZIO MA TOLGO LA FOTO CORRENTR
+    artist_photos = Foto.objects.filter(artist=artist).exclude(pk=foto_id)
 
     if request.method == "POST":
         form = AcquistoForm(request.POST, initial={'foto': foto, 'acquirente': request.user})
@@ -204,6 +208,7 @@ def CreaAcquisto(request, foto_id):
     context = {
         'foto': foto,
         'form': form,
+        'artist_photos': artist_photos
     }
 
     return render(request, 'APPfotoTempl/acquisto.html', context)

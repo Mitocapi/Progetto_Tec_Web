@@ -26,5 +26,47 @@
 </div>
 
 <br>
+<br>
+
+<!-- Carousel section for photos with the same artist -->
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div id="artist-photos-carousel" class="carousel slide" data-ride="carousel">
+        <ol class="carousel-indicators">
+          {% for foto in artist_photos %}
+          <li data-target="#artist-photos-carousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+          {% endfor %}
+        </ol>
+      <br>
+        <div class="carousel-inner">
+          {% for foto in artist_photos %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <h2>{{ foto.name }}</h2>
+              <br>
+            <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
+
+            <br>
+            <br>
+             <p>Foto dello stesso artista</p>
+          <br>
+          <br>
+          </div>
+          {% endfor %}
+        </div>
+        <a class="carousel-control-prev" href="#artist-photos-carousel" role="button" data-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#artist-photos-carousel" role="button" data-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 {% endblock %}
