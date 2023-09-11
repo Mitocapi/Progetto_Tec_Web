@@ -27,9 +27,9 @@ class Foto(models.Model):
 
     def __str__(self):
         if self.landscape:
-            return f"Nome foto: {self.name}, in formato landscape e costa soli: " + str(self.price)
+            return f"Nome foto: {self.name}, in formato landscape a partire da: " + str(self.price)
         else:
-            return f"Nome foto: {self.name}, in formato portrait e costa soli: " + str(self.price)
+            return f"Nome foto: {self.name}, in formato portrait a partire da: " + str(self.price)
 
 
 

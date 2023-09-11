@@ -9,11 +9,11 @@
 {% endblock %}
 
 {% block content %}
-<h2> {{ request.resolver_match.url_name }} {{ object_list.count }} Foto </h2>
+<h2> Vetrina con {{ object_list.count }} Foto </h2>
 <br>
 
 <div class="btn-group" role="group">
-    <a href="?sort=price" class="btn btn-secondary">Prezzo crescente></a>
+    <a href="?sort=price" class="btn btn-secondary">Prezzo crescente</a>
     <a href="?sort=new" class="btn btn-secondary">I più nuovi</a>
     <a href="?sort=for_you" class="btn btn-secondary">Suggeriti per te</a>
 </div>
@@ -24,22 +24,26 @@
     <br>
     <div class="card">
         <div class="card-header">
-        <img src="{{ f.actual_photo.url }}" alt="{{ f.name }}" >
+        <img src="{{ f.actual_photo.url }}" alt="{{ f.name }}" style="max-width: 400px; max-height: 400px;">
         </div>
         <div class="card-body">
             <h5 class="card-title">{{ f.name }}</h5>
             {% if f.landscape %}
                 <p class="card-text">foto scattata da {{ f.artist.username }} in formato Landscape</p>
+                <p class="card-text">Copie vendute: {{ f.acquisto_count }} !</p>
+               <br>
                 <br> comprala per soli {{ f.price }}
             {% else %}
                <p class="card-text">foto scattata da {{ f.artist.username }} in formato Portrait</p>
-                <br> comprala per soli {{ f.price }}
+               <p class="card-text">Copie vendute: {{ f.acquisto_count }} !</p>
+                <br>
+                <br> a partire da: {{ f.price }}
             {% endif %}
-            Spero ti piaccia
+
         </div>
         <div class="card-footer">
             <a href="{% url 'APPfoto:acquisto' f.pk %}" class="btn btn-info">
-                Se compra! </a>
+                Procedi alla composizione della foto </a>
         </div>
     </div>
     <br>

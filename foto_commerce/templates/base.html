@@ -42,13 +42,13 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Everybody say hello to {{user.username}} !</h5>
+        <h5 class="modal-title"> Login di {{user.username}} !</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
-        <p> Login avvenuto con successo, è un piacere riaverla tra noi signore </p>
+        <p> Login avvenuto con successo, funzioni utente registrato ora disponibili</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-info" data-dismiss="modal">Chiudi</button>
@@ -76,19 +76,19 @@
 
 
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'APPfoto:home' %}">Er gestionale va qua</a>
+          <a class="nav-link" href="{% url 'APPfoto:home' %}">Gestione Utente</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'APPfoto:listafoto' %}">Lista delle foto</a>
+          <a class="nav-link" href="{% url 'APPfoto:listafoto' %}">Vetrina Foto</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'APPfoto:cercaFoto' %}">Sai già di cosa hai voglia? Cerca una foto</a>
+          <a class="nav-link" href="{% url 'APPfoto:cercaFoto' %}"> Cerca Una Foto Nel Sito</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href={% url 'APPfoto:listafotografi' %}> Lista dei fotografi</a>
+          <a class="nav-link" href={% url 'APPfoto:listafotografi' %}> I Nostri Fotografi</a>
         </li>
 
       </ul>

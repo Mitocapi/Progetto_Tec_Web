@@ -11,7 +11,7 @@ def home(request):
     context = {'recent_photos': recent_photos}
     return render(request, 'home.html', context)
 class UserCreateView(CreateView):
-    form_class = CreaUtenteCliente()
+    form_class = CreaUtenteCliente
     template_name = "user_create.html"
     success_url = reverse_lazy("login")
 

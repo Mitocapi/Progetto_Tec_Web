@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
 
+
 class CreaUtenteCliente(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit)

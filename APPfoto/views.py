@@ -124,6 +124,8 @@ class FotoListView(ListView):
         queryset = super().get_queryset()
         sort = self.request.GET.get('sort', None)
 
+        queryset = queryset.annotate(acquisto_count=Count('venduti'))
+
         # Sort the queryset based on the sort_by parameter
         if sort == 'price':
             queryset = queryset.order_by('price')
@@ -132,6 +134,8 @@ class FotoListView(ListView):
 
         elif sort == 'for_you':
             queryset = forYouGenerator(self.request, queryset)
+
+
 
         return queryset
 
