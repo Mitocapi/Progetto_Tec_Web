@@ -40,8 +40,8 @@ class SearchForm(forms.Form):
 
     search_where = forms.ChoiceField(label="Criterio di ricerca: ", required=True, choices=CHOICE_LIST)
     search_string = forms.CharField(label="Nome foto", max_length=100, min_length=1, required=False)
-    main_colour = forms.ChoiceField(label="Colore principale", required=False, choices=COLOUR_CHOICES)
     artist = forms.ChoiceField(label="Fotografo", required=False, choices=artist_choices)
+    main_colour = forms.ChoiceField(label="Colore principale", required=False, choices=COLOUR_CHOICES)
     landscape = forms.BooleanField(label="Formato landscape", required=False)
 
 

@@ -31,7 +31,7 @@
       <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
         <h2>{{ foto.name }}</h2>
         <br>
-        <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}">
+        <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" style="max-width: 400px; max-height: 400px;">
       </a>
       <br>
       <br>

@@ -20,7 +20,7 @@ class Foto(models.Model):
     main_colour = models.CharField(max_length=100, choices=COLOUR_CHOICES)
     landscape = models.BooleanField()
     actual_photo = models.ImageField(upload_to='uploads/')
-    artist = models.ForeignKey(User, on_delete=models.CASCADE, default=0)
+    artist = models.ForeignKey(User, on_delete=models.CASCADE, default=0, related_name="foto")
     price = models.DecimalField(verbose_name="prezzo", max_digits=5, decimal_places=2, default=0.00)
     creation_date = models.DateTimeField(auto_now_add=True)
 

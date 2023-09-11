@@ -9,8 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
-from django.views import View
-from django.db.models import Avg, Q, F, ExpressionWrapper, fields, Count, Case, When, Value, IntegerField, Subquery, OuterRef
+from django.db.models import Avg, F, Sum, Count, Case, When, Value, IntegerField, Subquery, OuterRef
 
 
 def home_view(request):
@@ -20,47 +19,35 @@ def home_view(request):
 def forYouGenerator(request, queryset):
     user = request.user if request.user.is_authenticated else None
 
-    if user is not None:
-        queryset = queryset.annotate(
-            num_acquisti=Count('venduti', filter=Case(
-                When(venduti__acquirente=user, then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )),
-            num_recensioni=Count('venduti__recensioni', filter=Case(
-                When(venduti__acquirente=user, then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            ))
-        )
+
+
+    queryset = queryset.annotate(
+        num_acquisti=Count('venduti')
+    )
+
+    if user is not None:# Calculate compatibility based on user status
 
         queryset = queryset.annotate(
-            colour_compatibility=Case(
-                When(num_acquisti=0, then=Count('venduti', distinct=True)),
-                default=Count('venduti', filter=Q(venduti__acquirente=user, venduti__foto__main_colour=F('main_colour')))
-                            * Avg(Case(When(venduti__recensioni__utente=user, then=F('venduti__recensioni__voto')), default=Value(0), output_field=IntegerField())),
-                output_field=IntegerField(),
+            colour_compatibility=Sum(
+                Case(
+                    When(venduti__acquirente=user, venduti__foto__main_colour=F('main_colour'), then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
             ),
-            photographer_compatibility=Case(
-                When(num_acquisti=0, then=Count('venduti', distinct=True)),
-                default=Count('venduti', filter=Q(venduti__acquirente=user, venduti__foto__artist=F('artist')))
-                            * Avg(Case(When(venduti__recensioni__utente=user, then=F('venduti__recensioni__voto')), default=Value(0), output_field=IntegerField())),
-                output_field=IntegerField(),
+            photographer_compatibility=100 * Sum(
+                Case(
+                    When(venduti__acquirente=user, venduti__foto__artist=F('artist'), then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
             )
         ).annotate(
-            foto_compatibility=F('photographer_compatibility') + F('colour_compatibility')
-        ).order_by('-foto_compatibility')
+            foto_compatibility=F('num_acquisti') + F('photographer_compatibility')+ F('colour_compatibility')
+        ).order_by('foto_compatibility',)
+
     else:
-        queryset = queryset.annotate(
-            num_venduti=Count('venduti')
-        ).annotate(
-            average_review=ExpressionWrapper(
-                Avg(F('recensioni__voto')),
-                output_field=fields.FloatField()
-            )
-        ).annotate(
-            valore_foto=F('average_review') + F('num_venduti')
-        ).order_by('-valore_foto')
+        queryset=queryset.order_by('num_acquisti')
 
     return queryset
 
@@ -92,31 +79,13 @@ class FotografiListView(ListView):
 
         return members
 
-class SearchWrongColourView(View):
-    template_name = "APPfotoTempl/search_wrong_colour.html"
-
-    def get(self, request, *args, **kwargs):
-        form = SearchForm()
-        context = {'form': form}
-        return render(request, self.template_name, context)
-
-    def post(self, request, *args, **kwargs):
-
-        if request.method == "POST":
-            form = SearchForm(request.POST)
-            if form.is_valid():
-                sstring = form.cleaned_data.get("search_string")
-                where = form.cleaned_data.get("search_where")
-                return redirect("APPfoto:ricerca_risultati", sstring, where)
-            else:
-                context = {'form': form}
-            return render(request, self.template_name, context)
 
 
 class FotoListView(ListView):
-    titolo="Abbiamo trovato queste foto"
+    titolo = "Abbiamo trovato queste foto"
     model = Foto
     template_name = "APPfotoTempl/lista_foto.html"
+
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -124,16 +93,45 @@ class FotoListView(ListView):
 
         queryset = queryset.annotate(acquisto_count=Count('venduti'))
 
-        # Sort the queryset based on the sort_by parameter
+        queryset = queryset.order_by('-creation_date')
+
         if sort == 'price':
             queryset = queryset.order_by('price')
         elif sort == 'new':
             queryset = queryset.order_by('-creation_date')
-
         elif sort == 'for_you':
             queryset = forYouGenerator(self.request, queryset)
 
 
+        return queryset
+
+
+class FotoListaRicercataView(FotoListView):
+    model = Foto
+    template_name = "APPfotoTempl/lista_foto.html"
+    titolo = 'risultati ricerca'
+
+    def get_queryset(self):
+        where = self.kwargs['where']
+        sstring = self.kwargs['sstring']
+
+        queryset = Foto.objects.all()
+        print(where)
+        # Apply search criteria based on 'where'
+        if where == "name":
+            print("sstring")
+            print(sstring)
+            queryset = queryset.filter(name__icontains=sstring)
+        elif where == "landscape":
+            if sstring == "True":
+                queryset = queryset.filter(landscape=True)
+            else:
+                queryset = queryset.filter(landscape=False)
+        elif where == "main_colour":
+            queryset = queryset.filter(main_colour__icontains=sstring)
+        elif where == "artist":
+
+            queryset = queryset.filter(artist__id=sstring)
 
         return queryset
 
@@ -143,16 +141,14 @@ def search(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             search_where = form.cleaned_data['search_where']
-
-            if search_where == "name":
-                sstring = form.cleaned_data['search_string']
-            elif search_where == "landscape":
-                sstring = form.cleaned_data['landscape']
-            elif search_where == "main_colour":
-                sstring = form.cleaned_data['main_colour']
+            if search_where=="name":
+                sstring=form.cleaned_data['search_string']
+            elif search_where=="landscape":
+                sstring=form.cleaned_data['landscape']
+            elif search_where=="main_colour":
+                sstring=form.cleaned_data['main_colour']
             elif search_where == "artist":
-                sstring = form.cleaned_data['artist']
-
+                sstring=form.cleaned_data['artist']
 
             if not sstring:
                 sstring = "SEARCH SOMETHING, ANYTHING"
@@ -164,40 +160,7 @@ def search(request):
     return render(request, 'APPfotoTempl/search.html', {'form': form})
 
 
-class FotoListaRicercataView(FotoListView):
-    titolo = "risultati ricerca"
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        where = self.kwargs['where']
-        sstring = self.kwargs['sstring']
-
-
-        sort = self.request.GET.get('sort')
-        if sort == 'price':
-            queryset = queryset.order_by('price')
-        elif sort == 'new':
-            queryset = queryset.order_by('-creation_date')
-
-
-        if where == "name":
-            queryset = queryset.filter(name__icontains=sstring)
-        elif where == "landscape":
-            if sstring=="True":
-                queryset = queryset.filter(landscape=True)
-            else:
-                queryset = queryset.filter(landscape=False)
-        elif where == "main_colour":
-            sstring = self.kwargs['sstring']
-            queryset = queryset.filter(main_colour__icontains=sstring)
-
-        elif where == "artist":
-            queryset = queryset.filter(artist=sstring)
-
-        return queryset
-
-
-# views.py
 class CreateFotoView(LoginRequiredMixin, CreateView):
     model = Foto
     fields = ['name', 'main_colour', 'landscape', 'price', 'actual_photo']
