@@ -10,7 +10,7 @@ from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
 from django.views import View
-from django.db.models import Avg, Q, F, ExpressionWrapper, fields, Count, Case, When, Value, IntegerField
+from django.db.models import Avg, Q, F, ExpressionWrapper, fields, Count, Case, When, Value, IntegerField, Subquery, OuterRef
 
 
 def home_view(request):
@@ -47,13 +47,20 @@ def forYouGenerator(request, queryset):
                             * Avg(Case(When(venduti__recensioni__utente=user, then=F('venduti__recensioni__voto')), default=Value(0), output_field=IntegerField())),
                 output_field=IntegerField(),
             )
-        )
-
-        queryset = queryset.order_by('-colour_compatibility', '-photographer_compatibility')
+        ).annotate(
+            foto_compatibility=F('photographer_compatibility') + F('colour_compatibility')
+        ).order_by('-foto_compatibility')
     else:
         queryset = queryset.annotate(
             num_venduti=Count('venduti')
-        ).order_by('-num_venduti')
+        ).annotate(
+            average_review=ExpressionWrapper(
+                Avg(F('recensioni__voto')),
+                output_field=fields.FloatField()
+            )
+        ).annotate(
+            valore_foto=F('average_review') + F('num_venduti')
+        ).order_by('-valore_foto')
 
     return queryset
 
@@ -64,19 +71,17 @@ class FotografiListView(ListView):
 
     def get_queryset(self):
         fotografi_group = Group.objects.get(name='Fotografi')
+
+        subquery = Acquisto.objects.filter(foto__artist=OuterRef('pk')).values('foto__artist').annotate(
+            venduti_count=Count('id')
+        ).values('venduti_count')
+
         members = User.objects.filter(groups=fotografi_group).annotate(
-            average_review=ExpressionWrapper(
-                Avg(F('recensioni__voto')),
-                output_field=fields.FloatField()
-            )
+            average_review=Avg('recensioni__voto'),
+            foto_count=Count('foto', distinct=True),  # Count distinct photos
+            venduti_count=Subquery(subquery[:1])
         )
 
-        for user in members:
-            user.foto_count = Foto.objects.filter(artist=user).count()
-            user.venduti_count = Acquisto.objects.filter(foto__artist=user).count()
-
-
-        # Check the 'sort' query parameter and apply sorting
         sort_by = self.request.GET.get('sort')
         if sort_by == 'positive_reviews':
             members = members.order_by('-average_review')
@@ -86,13 +91,6 @@ class FotografiListView(ListView):
             members = members.order_by('-venduti_count')
 
         return members
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['group_name'] = 'Fotografi'
-        return context
-
 
 class SearchWrongColourView(View):
     template_name = "APPfotoTempl/search_wrong_colour.html"
