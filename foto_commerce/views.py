@@ -10,6 +10,8 @@ def home(request):
     recent_photos = Foto.objects.order_by('-creation_date')[:5]  # 5 FOTO PIÙ NUOVE NEL CAROSELLO
     context = {'recent_photos': recent_photos}
     return render(request, 'home.html', context)
+
+
 class UserCreateView(CreateView):
     form_class = CreaUtenteCliente
     template_name = "user_create.html"

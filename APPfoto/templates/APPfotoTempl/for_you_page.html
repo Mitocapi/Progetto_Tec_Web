@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <!-- Best Seller Carousel -->
+      <div class="col-md-8">
+        <div id="best-seller-carousel" class="carousel slide" data-ride="carousel">
+          <!-- INDICATORI -->
+          <ol class="carousel-indicators">
+            {% for foto in best_selling_foto %}
+            <li data-target="#best-seller-carousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+            {% endfor %}
+          </ol>
+
+          <!-- FOTO CHE SCORRONO -->
+          <div class="carousel-inner">
+            {% for foto in best_selling_foto %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+                <h2>{{ foto.name }}</h2>
+                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid">
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- CONTROLLI DELLA GIOSTRA -->
+          <a class="carousel-control-prev" href="#best-seller-carousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#best-seller-carousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Recent Photos Carousel -->
+      <div class="col-md-4">
+        <div id="recent-photos-carousel" class="carousel slide" data-ride="carousel">
+          <!-- INDICATORI -->
+          <ol class="carousel-indicators">
+            {% for foto in foto_recenti %}
+            <li data-target="#recent-photos-carousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+            {% endfor %}
+          </ol>
+
+          <!-- FOTO CHE SCORRONO -->
+          <div class="carousel-inner">
+            {% for foto in foto_recenti %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+                <h2>{{ foto.name }}</h2>
+                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid">
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- CONTROLLI DELLA GIOSTRA -->
+          <a class="carousel-control-prev" href="#recent-photos-carousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#recent-photos-carousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferenze Grid/Collage -->
+    <div class="row">
+      {% for foto in le_tue_preferenze %}
+      <div class="col-md-3">
+        <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+          <h2>{{ foto.name }}</h2>
+          <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid">
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+

@@ -9,48 +9,52 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
-from django.db.models import Avg, F, Sum, Count, Case, When, Value, IntegerField, Subquery, OuterRef
+from django.db.models import Avg, Count, Subquery, OuterRef
 
 
 def home_view(request):
     return render(request, template_name="APPfotoTempl/home.html")
 
 
-def forYouGenerator(request, queryset):
-    user = request.user if request.user.is_authenticated else None
+def forYouView(request):
+    user = request.user
 
-
-
-    queryset = queryset.annotate(
-        num_acquisti=Count('venduti')
-    )
-
-    if user is not None:# Calculate compatibility based on user status
-
-        queryset = queryset.annotate(
-            colour_compatibility=Sum(
-                Case(
-                    When(venduti__acquirente=user, venduti__foto__main_colour=F('main_colour'), then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
-                )
-            ),
-            photographer_compatibility=100 * Sum(
-                Case(
-                    When(venduti__acquirente=user, venduti__foto__artist=F('artist'), then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
-                )
-            )
-        ).annotate(
-            foto_compatibility=F('num_acquisti') + F('photographer_compatibility')+ F('colour_compatibility')
-        ).order_by('foto_compatibility',)
-
+    # PRIMO PASSO: fotografo preferito dall'utente
+    if user.is_authenticated:
+        fotografo_prefe = Recensione.objects.filter(
+            acquisto__acquirente=user
+        ).values('acquisto__foto__artist').annotate(
+            avg_rating=Avg('voto')
+        ).order_by('-avg_rating').first()
     else:
-        queryset=queryset.order_by('num_acquisti')
+        fotografo_prefe = None
 
-    return queryset
+    # SECONDO PASSO, le foto del fotografo prefe o del miglior fotografo complessivamente
+    if fotografo_prefe:
+        preferenze = Foto.objects.filter(artist=fotografo_prefe['acquisto__foto__artist'])[:7]
+    else:
+        best_photographer = Recensione.objects.values('acquisto__foto__artist').annotate(
+            avg_rating=Avg('voto')
+        ).order_by('-avg_rating').first()
 
+        if best_photographer:
+            preferenze = Foto.objects.filter(artist=best_photographer['acquisto__foto__artist'])[:7]
+        else:
+            preferenze = []
+
+    foto_recenti = Foto.objects.order_by('-creation_date')[:7]
+
+    best_selling_foto = Foto.objects.annotate(
+        acquisto_count=Count('venduti')
+    ).order_by('-acquisto_count')[:7]
+
+    context = {
+        'foto_recenti': foto_recenti,
+        'best_selling_foto': best_selling_foto,
+        'le_tue_preferenze': preferenze,
+    }
+
+    return render(request, 'APPfotoTempl/for_you_page.html', context)
 
 class FotografiListView(ListView):
     template_name = 'APPfotoTempl/lista_fotografi.html'
@@ -99,9 +103,6 @@ class FotoListView(ListView):
             queryset = queryset.order_by('price')
         elif sort == 'new':
             queryset = queryset.order_by('-creation_date')
-        elif sort == 'for_you':
-            queryset = forYouGenerator(self.request, queryset)
-
 
         return queryset
 
