@@ -15,6 +15,7 @@
 <div class="btn-group" role="group">
     <a href="?sort=price" class="btn btn-secondary">Prezzo crescente</a>
     <a href="?sort=new" class="btn btn-secondary">I più nuovi</a>
+    <a href="?sort=best seller" class="btn btn-secondary">Best Seller</a>
 </div>
 
 <br>
@@ -28,16 +29,17 @@
         <div class="card-body">
             <h5 class="card-title">{{ f.name }}</h5>
             {% if f.landscape %}
-                <p class="card-text">foto scattata da {{ f.artist.username }} in formato Landscape</p>
-                <p class="card-text">Copie vendute: {{ f.num_acquisti }} !</p>
-               <br>
-                <br> comprala per soli {{ f.price }}
-            {% else %}
-               <p class="card-text">foto scattata da {{ f.artist.username }} in formato Portrait</p>
-               <p class="card-text">Copie vendute: {{ f.num_acquisti }} !</p>
-                <br>
-                <br> a partire da: {{ f.price }}
-            {% endif %}
+    <p class="card-text">foto scattata da {{ f.artist.username }} in formato Landscape</p>
+    <p class="card-text">Copie vendute: {{ f.acquisto_count }} !</p>
+    <br>
+    <br> comprala per soli {{ f.price }}
+{% else %}
+    <p class="card-text">foto scattata da {{ f.artist.username }} in formato Portrait</p>
+    <p class="card-text">Copie vendute: {{ f.acquisto_count }}!</p>
+    <br>
+    <br> a partire da: {{ f.price }}
+{% endif %}
+
 
         </div>
         <div class="card-footer">

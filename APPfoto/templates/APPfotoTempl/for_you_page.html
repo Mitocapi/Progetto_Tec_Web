@@ -1,9 +1,25 @@
 {% extends "base.html" %}
 
+{% block title %} I Nostri Consigli {% endblock %}
+
+{% block header1 %}
+  <h1>I Nostri Consigli per te: </h1>
+    <br>
+  <p>
+    {% if user.is_authenticated %}
+     {{ user.username }}
+    {% else %}
+    Utente non registrato
+    {% endif %}
+  </p>
+{% endblock %}
+
+
+
 {% block content %}
   <div class="container">
     <div class="row">
-      <!-- Best Seller Carousel -->
+      <!-- best seller -->
       <div class="col-md-8">
         <div id="best-seller-carousel" class="carousel slide" data-ride="carousel">
           <!-- INDICATORI -->
@@ -17,9 +33,10 @@
           <div class="carousel-inner">
             {% for foto in best_selling_foto %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <h2> Fan favourite: </h2>
               <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
                 <h2>{{ foto.name }}</h2>
-                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid">
+                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid" style="width: 200px; height: 200px;">
               </a>
             </div>
             {% endfor %}
@@ -37,7 +54,7 @@
         </div>
       </div>
 
-      <!-- Recent Photos Carousel -->
+      <!-- giostrina 2 foto recenti -->
       <div class="col-md-4">
         <div id="recent-photos-carousel" class="carousel slide" data-ride="carousel">
           <!-- INDICATORI -->
@@ -51,9 +68,10 @@
           <div class="carousel-inner">
             {% for foto in foto_recenti %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-              <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+              <h2> Le nostre foto più recenti: </h2>
+                <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
                 <h2>{{ foto.name }}</h2>
-                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid">
+                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid" style="width: 300px; height: 200px;">
               </a>
             </div>
             {% endfor %}
@@ -72,17 +90,42 @@
       </div>
     </div>
 
-    <!-- Preferenze Grid/Collage -->
-    <div class="row">
-      {% for foto in le_tue_preferenze %}
-      <div class="col-md-3">
-        <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
-          <h2>{{ foto.name }}</h2>
-          <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid">
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-{% endblock %}
 
+          <!-- terza giostrina -->
+      <div class="col-md-4">
+        <div id="preferred-photos-carousel" class="carousel slide" data-ride="carousel">
+          <!-- INDICATORI -->
+          <ol class="carousel-indicators">
+            {% for foto in le_tue_preferenze %}
+            <li data-target="#preferred-photos-carousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+            {% endfor %}
+          </ol>
+
+          <!-- FOTO CHE SCORRONO -->
+          <div class="carousel-inner">
+            {% for foto in le_tue_preferenze %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <h2> Foto del tuo artista preferito: </h2>
+                <a href="{% url 'APPfoto:ricerca_risultati' foto.name 'name' %}">
+                <h2>{{ foto.name }}</h2>
+                <img src="{{ foto.actual_photo.url }}" alt="{{ foto.name }}" class="img-fluid" style="width: 200px; height: 200px;">
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- CONTROLLI DELLA GIOSTRA -->
+          <a class="carousel-control-prev" href="#preferred-photos-carousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#preferred-photos-carousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+
+{% endblock %}

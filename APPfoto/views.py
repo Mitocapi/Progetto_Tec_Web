@@ -1,3 +1,4 @@
+from django.db.models.functions import Coalesce
 from django.shortcuts import redirect, get_object_or_404
 from .forms import *
 from django.views.generic.list import ListView
@@ -9,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from .forms import SearchForm
 from django.shortcuts import render
-from django.db.models import Avg, Count, Subquery, OuterRef
+from django.db.models import Avg, Count, Subquery, OuterRef, Value
 
 
 def home_view(request):
@@ -95,7 +96,8 @@ class FotoListView(ListView):
         queryset = super().get_queryset()
         sort = self.request.GET.get('sort', None)
 
-        queryset = queryset.annotate(acquisto_count=Count('venduti'))
+        queryset = queryset.annotate(
+            acquisto_count=Coalesce(Count('venduti'), Value(0, output_field=models.IntegerField())))
 
         queryset = queryset.order_by('-creation_date')
 
@@ -103,6 +105,8 @@ class FotoListView(ListView):
             queryset = queryset.order_by('price')
         elif sort == 'new':
             queryset = queryset.order_by('-creation_date')
+        elif sort == 'best seller':
+            queryset = queryset.order_by('-acquisto_count')
 
         return queryset
 
@@ -117,11 +121,11 @@ class FotoListaRicercataView(FotoListView):
         sstring = self.kwargs['sstring']
 
         queryset = Foto.objects.all()
-        print(where)
-        # Apply search criteria based on 'where'
+
+        queryset = queryset.annotate(
+            acquisto_count=Coalesce(Count('venduti'), Value(0, output_field=models.IntegerField())))
+
         if where == "name":
-            print("sstring")
-            print(sstring)
             queryset = queryset.filter(name__icontains=sstring)
         elif where == "landscape":
             if sstring == "True":
