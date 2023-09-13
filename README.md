@@ -1,4 +1,4 @@
-# foto_commerce3
+# Progetto Tecnologie Web
 librerie utilizzate nella realizzazione del progetto: 
 - crispy-forms e django-bootstrap4 sono stati utilizzati per migliorare l'aspetto grafico
 del sito e la User experience, per poterli usare è necessario installarli tramite
