@@ -34,6 +34,7 @@ class Foto(models.Model):
 
 
 
+
 class Acquisto(models.Model):
 
     MATERIALE_DI_STAMPA = [

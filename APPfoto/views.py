@@ -146,25 +146,24 @@ def search(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             search_where = form.cleaned_data['search_where']
-            if search_where=="name":
-                sstring=form.cleaned_data['search_string']
-            elif search_where=="landscape":
-                sstring=form.cleaned_data['landscape']
-            elif search_where=="main_colour":
-                sstring=form.cleaned_data['main_colour']
+            if search_where == "name":
+                sstring = form.cleaned_data['search_string']
+            elif search_where == "landscape":
+                sstring = form.cleaned_data['landscape']
+            elif search_where == "main_colour":
+                sstring = form.cleaned_data['main_colour']
             elif search_where == "artist":
-                sstring=form.cleaned_data['artist']
+                sstring = form.cleaned_data['artist']
 
             if not sstring:
                 sstring = "SEARCH SOMETHING, ANYTHING"
 
             return redirect("APPfoto:ricerca_risultati", sstring=sstring, where=search_where)
-
     else:
         form = SearchForm()
+
+
     return render(request, 'APPfotoTempl/search.html', {'form': form})
-
-
 
 class CreateFotoView(LoginRequiredMixin, CreateView):
     model = Foto

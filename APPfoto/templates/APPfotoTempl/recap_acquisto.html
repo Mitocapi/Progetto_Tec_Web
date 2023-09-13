@@ -16,16 +16,16 @@
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <!-- Display acquisto details here -->
+
       <p><strong>Acquirente:</strong> {{ acquisto.acquirente }}</p>
       <p><strong>Foto:</strong> {{ acquisto.foto }}</p>
       <p><strong>Prezzo di Partenza foto:</strong> {{ acquisto.foto.price }}</p>
       <p><strong>Materiale:</strong> {{ acquisto.get_materiale_display }}</p>
       <p><strong>Dimensioni:</strong> {{ acquisto.get_dimensioni_display }}</p>
       <p><strong>Per un totale di:</strong> {{ acquisto.prezzo }}</p>
-      <!-- Add more fields as needed -->
 
-      <!-- Button to confirm and create the acquisto -->
+
+      <!-- Conferma acquisto -->
     <form method="post" action="{% url 'APPfoto:situation' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Conferma Acquisto</button>

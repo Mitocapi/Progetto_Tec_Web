@@ -1,82 +1,85 @@
-from django.test import TestCase
-from .models import Acquisto,Foto,Recensione
-from django.contrib.auth.models import User, Permission, Group
-from django.test import Client
+from django.test import TestCase, Client
 from django.urls import reverse
+from django.contrib.auth.models import User
+from .models import Foto, Acquisto
 
 
-class FotoListViewTest(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        # Crea i Fotografi
-        group_name = "Fotografi"
-        cls.group = Group.objects.create(name=group_name)
-
+class CreaAcquistoViewTestCase(TestCase):
     def setUp(self):
+        self.client = Client()
 
-        user = User.objects.create_user(username="user", password="password")
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+    def test_crea_acquisto_valido_post(self):
 
-        fotografi_group, created = Group.objects.get_or_create(name='Fotografi')
-        fotoguser = User.objects.create_user(username='testuser', password='password')
-        fotoguser.groups.add(fotografi_group)
-        fotoguser2 = User.objects.create_user(username='testuser2', password='password')
-        fotoguser2.groups.add(fotografi_group)
+        foto = Foto.objects.create(name='nomefoto',artist=self.user,price=10, actual_photo='fototest.jpg', landscape=True )
 
-        # crwa delle foto
-        foto1 = Foto.objects.create(name="Foto 1", venduti=3, price=10, artist=fotoguser )
-        foto2 = Foto.objects.create(name="Foto 2", venduti=5, price=15, artist=fotoguser )
-        foto3 = Foto.objects.create(name="Foto 3", venduti=0, price=20, artist= fotoguser2 )
+        form_data = {
+            'materiale': '0.00',
+            'dimensioni': '0.00',
+        }
 
-        #creo acquisti
-        self.acquisto1 = Acquisto.objects.create(foto=foto1, acquirente=user)
-        self.acquisto2 = Acquisto.objects.create(foto=foto1, acquirente=user)
-        self.acquisto3 = Acquisto.objects.create(foto=foto2, acquirente=user)
+        response = self.client.post(reverse('APPfoto:acquisto', args=[foto.id]), data=form_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('APPfoto:situation'))
+        self.assertTrue(Acquisto.objects.filter(foto=foto, acquirente=self.user).exists())
 
-    def test_view_returns_200(self):
-        response = self.client.get(reverse('APPfoto:listafoto'))
+    def test_crea_acquisto_invalido_post(self):
+        foto2 = Foto.objects.create(name='nomefoto2',artist=self.user,price=10, actual_photo='fototest2.jpg', landscape=True )
+
+        form_data = {
+            'dimensioni' : 99,
+            'materiale' : 'legno'
+        }
+
+        response = self.client.post(reverse('APPfoto:acquisto', args=[foto2.id]), data=form_data)
+
         self.assertEqual(response.status_code, 200)
 
-    def test_view_mostra_foto_con_acquisto_count(self):
-        response = self.client.get(reverse('APPfoto:listafoto'))
-        self.assertContains(response, 'Copie vendute: 3', count=1)
-        self.assertContains(response, 'Copie vendute: 5', count=1)
-        self.assertContains(response, 'Copie vendute: 0', count=1)
 
-    def test_sort_by_best_seller(self):
-        response = self.client.get(reverse('APPfoto:listafoto') + '?sort=best%20seller')
 
-        # ordine di vendite...
-        expected_sorted_fotos = Foto.objects.order_by('-acquisto_count')
-        self.assertQuerysetEqual(
-            response.context['object_list'],
-            expected_sorted_fotos,
-            transform=lambda x: x,
-        )
+    def test_form_rendering(self):
 
-    def test_sort_by_prezzo(self):
-        response = self.client.get(reverse('your_foto_list_view_name') + '?sort=price')
+        foto3 = Foto.objects.create(name='nomefoto3', artist=self.user, price=10, actual_photo='fototest3.jpg',
+                                   landscape=True)
 
-        # Check if the response displays photos sorted by price in ascending order.
-        expected_sorted_fotos = Foto.objects.order_by('price')
-        self.assertQuerysetEqual(
-            response.context['object_list'],
-            expected_sorted_fotos,
-            transform=lambda x: x,
-        )
+        response = self.client.get(reverse('APPfoto:acquisto', args=[foto3.id]))
+        self.assertEqual(response.status_code, 200)
 
-    def test_sort_by_new(self):
-        response = self.client.get(reverse('APPfoto:listafoto') + '?sort=new')
+        #contiene quello che deve contenere
 
-        # Testiamo se ordnia by new
-        expected_sorted_fotos = Foto.objects.order_by('-creation_date')
-        self.assertQuerysetEqual(
-            response.context['object_list'],
-            expected_sorted_fotos,
-            transform=lambda x: x,
-        )
+        self.assertTemplateUsed(response, 'APPfotoTempl/acquisto.html')
+        self.assertContains(response, '<form', count=1)
+        self.assertContains(response, 'id="id_materiale"', count=1)
+        self.assertContains(response, 'id="id_dimensioni"', count=1)
+        self.assertContains(response, 'id="id_foto"', count=1)
 
-    def test_no_photos_available_message(self):
-        Foto.objects.all().delete()
-        response = self.client.get(reverse('APPfoto:listafoto'))
-        self.assertContains(response, 'No photos available', count=1)
+
+    def test_campi_form_prefatti_data(self):
+
+        foto4 = Foto.objects.create(name='nomefoto4', artist=self.user, price=10, actual_photo='fototest4.jpg',
+                                   landscape=True)
+
+        response = self.client.get(reverse('APPfoto:acquisto', args=[foto4.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'APPfotoTempl/acquisto.html')
+
+        #controllo che sia pieno il pieno e vuoto il votuo
+        form = response.context['form']
+        self.assertEqual(form.initial['foto'], foto4)
+        self.assertEqual(form.initial['acquirente'], self.user)
+        self.assertContains(response, 'id='"id_materiale", count=0)
+        self.assertContains(response, 'id="dimensioni"', count=0)
+
+    def test_user_not_logged_in(self):
+        self.client = Client()
+        foto5 = Foto.objects.create(name='nomefoto5', artist=self.user, price=10, actual_photo='fototest5.jpg',
+                                   landscape=True)
+
+        response = self.client.get(reverse('APPfoto:acquisto', args=[foto5.id]))
+
+        self.assertEqual(response.status_code, 302)
+        actual_url = response.url
+
+        # viene rediretto all'url di login e poi torna alla foto
+        self.assertEqual(actual_url, '/login/?auth=notok&next=/APPfoto/acquisto/1/')

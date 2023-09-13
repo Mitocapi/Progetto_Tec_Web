@@ -3,7 +3,6 @@ from django.contrib.auth.models import User,Group
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 class SearchForm(forms.Form):
     CHOICE_LIST = [
@@ -31,7 +30,7 @@ class SearchForm(forms.Form):
     fotografi_group = Group.objects.get(name='Fotografi')
     users_in_groups = User.objects.filter(groups__in=[fotografi_group])
 
-    # Add a blank choice at the beginning of the list
+
     artist_choices = [("", "Select Fotografo")] + [(user.id, user.username) for user in users_in_groups]
     helper = FormHelper()
     helper.form_id = 'search_crispy_form'

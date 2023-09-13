@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
-{% block title %} Home di Super Gallery {% endblock %}
+{% block title %} Home di Foto Gallery {% endblock %}
 
 {% block header1 %}
-  <h1>Home di Super Gallery</h1>
+  <h1>Home di Foto Gallery</h1>
   <p>Welcome
     {% if user.is_authenticated %}
      {{ user.username }}
     {% else %}
-    Utente non registrato, <br> Wait a minute, who are you?
+    Utente non registrato
     {% endif %}
   </p>
 {% endblock %}
