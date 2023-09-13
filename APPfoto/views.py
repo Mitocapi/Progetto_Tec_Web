@@ -172,7 +172,7 @@ def search(request):
 
 class CreateFotoView(LoginRequiredMixin, CreateView):
     model = Foto
-    fields = ['name', 'main_colour', 'landscape', 'price', 'actual_photo']
+    fields = ['name', 'main_colour', 'price', 'landscape', 'actual_photo']
     template_name = 'APPfotoTempl/create_entry.html'
     success_url = reverse_lazy("APPfoto:home")
 

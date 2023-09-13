@@ -44,18 +44,6 @@ class SearchForm(forms.Form):
     landscape = forms.BooleanField(label="Formato landscape", required=False)
 
 
-class FotoCrispyForm(forms.ModelForm):
-
-    helper = FormHelper()
-    helper.form_id = 'foto-crispy-form'
-    helper.form_method = 'POST'
-    helper.add_input(Submit('submit','Submit'))
-
-    class Meta:
-        model = Foto
-        fields = ('name', 'artist', 'main_colour', 'landscape')
-
-
 class CreateFotoForm(forms.ModelForm):
     helper = FormHelper()
     helper.form_id = "addfoto_crispy_form"

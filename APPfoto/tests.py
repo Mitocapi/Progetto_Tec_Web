@@ -13,7 +13,6 @@ class CreaAcquistoViewTestCase(TestCase):
     def test_crea_acquisto_valido_post(self):
 
         foto = Foto.objects.create(name='nomefoto',artist=self.user,price=10, actual_photo='fototest.jpg', landscape=True )
-
         form_data = {
             'materiale': '0.00',
             'dimensioni': '0.00',
