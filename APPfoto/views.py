@@ -13,6 +13,7 @@ from django.shortcuts import render
 from django.db.models import Avg, Count, Subquery, OuterRef, Value
 
 
+
 def home_view(request):
     return render(request, template_name="APPfotoTempl/home.html")
 
@@ -154,6 +155,9 @@ def search(request):
                 sstring = form.cleaned_data['main_colour']
             elif search_where == "artist":
                 sstring = form.cleaned_data['artist']
+            else:
+                messages.error(request, "Invalid form data. Please correct the errors.")
+
 
             if not sstring:
                 sstring = "SEARCH SOMETHING, ANYTHING"
@@ -165,6 +169,7 @@ def search(request):
 
     return render(request, 'APPfotoTempl/search.html', {'form': form})
 
+
 class CreateFotoView(LoginRequiredMixin, CreateView):
     model = Foto
     fields = ['name', 'main_colour', 'landscape', 'price', 'actual_photo']
@@ -172,9 +177,19 @@ class CreateFotoView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("APPfoto:home")
 
     def form_valid(self, form):
-        form.instance.artist = self.request.user
-        return super().form_valid(form)
+        # Check if a Foto with the same name already exists
+        existing_foto = Foto.objects.filter(name=form.cleaned_data['name']).first()
+        existing__actual_photo = Foto.objects.filter(actual_photo=form.cleaned_data['actual_photo']).first
 
+        if existing_foto or existing__actual_photo:
+            # If a Foto with the same name exists, show an error message
+            messages.error(self.request, 'A Foto with this name already exists.')
+            return render(self.request, self.template_name, {'form': form})
+
+        # Set the artist to the current user
+        form.instance.artist = self.request.user
+
+        return super().form_valid(form)
 
 @login_required
 def my_situation(request):

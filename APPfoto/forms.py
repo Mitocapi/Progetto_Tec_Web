@@ -65,7 +65,7 @@ class CreateFotoForm(forms.ModelForm):
 
     class Meta:
         model = Foto
-        fields = ["name", "main_colour", "landscape", "price", "actual_photo"]
+        fields = ["name", "main_colour", "price", "landscape", "actual_photo"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

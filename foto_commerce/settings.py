@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'crispy_forms',
     'crispy_bootstrap4',
     'APPfoto.static',
@@ -131,3 +132,9 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = "/?login=ok"
 LOGIN_URL="/login/?auth=notok"
+
+
+GRAPH_MODELS = {
+    "all_applications" : True,
+    "group_models" : True
+}

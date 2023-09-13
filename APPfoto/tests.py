@@ -1,13 +1,13 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,Group
 from .models import Foto, Acquisto
+from .forms import SearchForm
 
 
 class CreaAcquistoViewTestCase(TestCase):
     def setUp(self):
         self.client = Client()
-
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client.login(username='testuser', password='testpassword')
     def test_crea_acquisto_valido_post(self):
@@ -83,3 +83,193 @@ class CreaAcquistoViewTestCase(TestCase):
 
         # viene rediretto all'url di login e poi torna alla foto
         self.assertEqual(actual_url, '/login/?auth=notok&next=/APPfoto/acquisto/1/')
+
+
+
+class SearchFormTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='fotografi_user', password='testpassword')
+        fotografi_group, created = Group.objects.get_or_create(name='Fotografi')
+        self.user.groups.add(fotografi_group)
+
+    def test_search_form_rendering(self):
+        client = Client()
+        response = self.client.get(reverse('APPfoto:cercaFoto'))  # Replace with your actual URL
+        self.assertContains(response, '<form', count=1)
+        self.assertContains(response, 'id="id_search_where"', count=1)
+        self.assertContains(response, 'id="id_search_string"', count=1)
+        self.assertContains(response, 'id="id_artist"', count=1)
+        self.assertContains(response, 'id="id_main_colour"', count=1)
+        self.assertContains(response, 'id="id_landscape"', count=1)
+
+    def test_search_form_non_valido(self):
+        form_data = {
+            'search_where':99,
+            'search_string' : 'NON BOOLEAN'
+        }
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+        form_data = {
+            'search_where': "",
+            'search_string': 'NON BOOLEAN'
+        }
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+        form_data = {
+            'search_where': "not a field",
+            'search_string': 9
+        }
+
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+        form_data = {
+            'search_where': None,
+            'search_string': 'NON BOOLEAN'
+        }
+
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+        form_data = {
+            'search_where': "artist",
+            'search_string': None,
+            'artist': 99
+        }
+
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+
+        form_data = {
+            'search_where': "main_colour",
+            'main_colour': "non choice ma still str"
+        }
+
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+        form_data = {
+            'search_where': "main_colour",
+            'main_colour': 99
+        }
+
+        form = SearchForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertGreaterEqual(len(form.errors), 1)
+
+
+
+    def test_search_form_choices(self):
+        form = SearchForm()
+        artist_field = form.fields['artist']
+        self.assertGreaterEqual(len(artist_field.choices), 1)
+
+        form = SearchForm()
+        main_colour_field = form.fields['main_colour']
+        self.assertGreaterEqual(len(main_colour_field.choices), 1)
+
+    def test_valid_search_form(self):
+        form_data = {
+            'search_where': 'name',
+            'search_string': 'Test Photo',
+        }
+        form = SearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        form_data = {
+            'search_where': 'landscape',
+            'search_string': 'not a boolean',
+        }
+        form = SearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        form_data = {
+            'search_where': 'landscape',
+            'search_string': True,
+        }
+        form = SearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        form_data = {
+            'search_where': 'artist',
+            'search_string': 'string',
+        }
+        form = SearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        form_data = {
+            'search_where': 'main_colour',
+            'search_string': 'Orange',
+        }
+        form = SearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        form_data = {
+            'search_where': 'main_colour',
+            'search_string': 'not a colour but still a string',
+        }
+        form = SearchForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+
+from django.test import TestCase
+from django.urls import reverse
+from django.contrib.auth.models import User
+from django.test import Client
+
+
+class MySituationViewTestCase(TestCase):
+    def setUp(self):
+        # Create a user for testing
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+    def test_authenticated_user_can_access(self):
+        # Log in the user
+        self.client.login(username='testuser', password='testpassword')
+
+        # Access the 'my_situation' view
+        response = self.client.get(reverse('APPfoto:my_situation'))
+
+        # Check if the response status code is 200 (OK)
+        self.assertEqual(response.status_code, 200)
+
+    def test_unauthenticated_user_is_redirected(self):
+        # Access the 'my_situation' view without logging in
+        response = self.client.get(reverse('APPfoto:my_situation'))
+
+        # Check if the response status code is 302 (Redirect to login)
+        self.assertEqual(response.status_code, 302)
+
+        # Check if the user is redirected to the login page
+        self.assertRedirects(response, reverse('login') + f'?next={reverse("APPfoto:my_situation")}')
+
+    def test_correct_template_used(self):
+        # Log in the user
+        self.client.login(username='testuser', password='testpassword')
+
+        # Access the 'my_situation' view
+        response = self.client.get(reverse('APPfoto:my_situation'))
+
+        # Check if the correct template is used
+        self.assertTemplateUsed(response, 'APPfotoTempl/situation.html')
+
+    def test_purchase_history_displayed(self):
+        # Log in the user
+        self.client.login(username='testuser', password='testpassword')
+
+        # Access the 'my_situation' view
+        response = self.client.get(reverse('APPfoto:my_situation'))
+
+        # Check if the user's purchase history is displayed correctly
+        # You can modify this based on your actual data
+        self.assertContains(response, 'Ecco l\'elenco dei tuoi acquisti')
+        self.assertContains(response, 'Spesa totale:')
