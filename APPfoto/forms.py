@@ -106,7 +106,7 @@ class RecensioneForm(forms.ModelForm):
         self.fields["fotografo"].disabled = True
 
 
-        # Crispy Form Helper
+        # Helper per crispy
         self.helper = FormHelper()
         self.helper.form_id = "recensione_crispy_form"
         self.helper.form_method = "POST"

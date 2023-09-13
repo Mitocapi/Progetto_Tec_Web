@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User  # Import the User model from Django's built-in auth
+from django.contrib.auth.models import User
 
 class Foto(models.Model):
     COLOUR_CHOICES = [

@@ -177,16 +177,15 @@ class CreateFotoView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("APPfoto:home")
 
     def form_valid(self, form):
-        # Check if a Foto with the same name already exists
+       # stesso nome, brutte cose
         existing_foto = Foto.objects.filter(name=form.cleaned_data['name']).first()
         existing__actual_photo = Foto.objects.filter(actual_photo=form.cleaned_data['actual_photo']).first
 
         if existing_foto or existing__actual_photo:
-            # If a Foto with the same name exists, show an error message
-            messages.error(self.request, 'A Foto with this name already exists.')
+            # stesso nome, brutte cose
+            messages.error(self.request, 'A Foto with this name or Filename (actual_photo) already exists.')
             return render(self.request, self.template_name, {'form': form})
 
-        # Set the artist to the current user
         form.instance.artist = self.request.user
 
         return super().form_valid(form)
@@ -252,8 +251,6 @@ def CreaRecensione(request, acquisto_id):
     acquisto = get_object_or_404(Acquisto, pk=acquisto_id)
     existing_recensione = Recensione.objects.filter(acquisto=acquisto, utente=request.user).first()
     foto = get_object_or_404(Foto, pk=acquisto.foto_id)
-
-    print(acquisto)
 
 
     if request.method == 'POST':

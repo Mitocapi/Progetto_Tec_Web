@@ -221,55 +221,62 @@ class SearchFormTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
 
-from django.test import TestCase
-from django.urls import reverse
-from django.contrib.auth.models import User
-from django.test import Client
-
-
 class MySituationViewTestCase(TestCase):
     def setUp(self):
-        # Create a user for testing
         self.user = User.objects.create_user(username='testuser', password='testpassword')
 
+
     def test_authenticated_user_can_access(self):
-        # Log in the user
+
         self.client.login(username='testuser', password='testpassword')
+        response = self.client.get(reverse('APPfoto:situation'))
 
-        # Access the 'my_situation' view
-        response = self.client.get(reverse('APPfoto:my_situation'))
-
-        # Check if the response status code is 200 (OK)
+        # 200=ok
         self.assertEqual(response.status_code, 200)
 
     def test_unauthenticated_user_is_redirected(self):
-        # Access the 'my_situation' view without logging in
-        response = self.client.get(reverse('APPfoto:my_situation'))
+        # entra in situation senza essere loggato
+        response = self.client.get(reverse('APPfoto:situation'))
 
-        # Check if the response status code is 302 (Redirect to login)
         self.assertEqual(response.status_code, 302)
+        actual_url = response.url
 
-        # Check if the user is redirected to the login page
-        self.assertRedirects(response, reverse('login') + f'?next={reverse("APPfoto:my_situation")}')
+        # viene rediretto all'url di login e poi torna alla pagina
+        self.assertEqual(actual_url, '/login/?auth=notok&next=/APPfoto/situation/')
 
     def test_correct_template_used(self):
-        # Log in the user
+
         self.client.login(username='testuser', password='testpassword')
+        response = self.client.get(reverse('APPfoto:situation'))
 
-        # Access the 'my_situation' view
-        response = self.client.get(reverse('APPfoto:my_situation'))
-
-        # Check if the correct template is used
+        # controlla il templ
         self.assertTemplateUsed(response, 'APPfotoTempl/situation.html')
 
     def test_purchase_history_displayed(self):
-        # Log in the user
         self.client.login(username='testuser', password='testpassword')
 
-        # Access the 'my_situation' view
-        response = self.client.get(reverse('APPfoto:my_situation'))
+        self.foto = Foto.objects.create(
+            name='Test Photo',
+            main_colour='Blue',
+            landscape=True,
+            price=20.0,
+            actual_photo='test.jpg',
+            artist=self.user
+        )
 
-        # Check if the user's purchase history is displayed correctly
-        # You can modify this based on your actual data
+        acquisto = Acquisto.objects.create(
+            foto=self.foto,
+            acquirente=self.user,
+            prezzo=20.0,
+            materiale="0.00",
+            dimensioni="0.00"
+        )
+
+        response = self.client.get(reverse('APPfoto:situation'))
         self.assertContains(response, 'Ecco l\'elenco dei tuoi acquisti')
-        self.assertContains(response, 'Spesa totale:')
+
+        # We gucci url?
+        self.assertContains(response, 'card-title')
+        self.assertContains(response, 'card-text')
+        self.assertContains(response, 'Scrivi una Recensione')
+        self.assertContains(response, 'Spesa totale: ')
